@@ -1,4 +1,5 @@
 USE WilliamPagerSA
+GO
 
 CREATE FUNCTION [dbo].[RemoveNonASCII] (@nstring VARCHAR(4000))
 RETURNS VARCHAR(4000)

@@ -33,7 +33,7 @@ INSERT INTO [sma_MST_OrgContacts]
 	   ,ISNULL(LAST_COMPANY, '') + ISNULL(', ' + FIRST_DBA, '')
 	   ,1
 	   ,''
-	   ,FIRST_DBA + ISNULL(ALIASNAMES, '')
+	   ,FIRST_DBA --+ ISNULL(ALIASNAMES, '')	-- ds 2024-09-06
 	   ,2
 	   ,NULL
 	   ,NULL

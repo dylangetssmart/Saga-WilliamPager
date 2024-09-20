@@ -96,7 +96,8 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,SUBSTRING(MIDDLE_CONTACT, 0, 29)
 	   ,SUBSTRING(LAST_COMPANY, 0, 39)
 	   ,NULL
-	   ,SUBSTRING(ALIASNAMES, 0, 15)
+		--	   ,SUBSTRING(ALIASNAMES, 0, 15)
+	   ,NULL							-- ds 2024-09-20
 	   ,1
 	   ,SUBSTRING(ssn, 0, 19)
 	   ,DATEOFB
@@ -139,8 +140,10 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,''
 	   ,''
 	   ,''
-	   ,HEIGHTFEET + HEIGHTINCH
-	   ,WEIGHT
+		--,HEIGHTFEET + HEIGHTINCH
+		--,WEIGHT
+	   ,NULL						-- ds 2024-09-20
+	   ,NULL						-- ds 2024-09-20
 	   ,''
 	   ,NULL
 	   ,''
@@ -263,7 +266,8 @@ INSERT INTO [sma_MST_Address]
 	   ,NULL
 	   ,NULL
 	   ,NULL
-	   ,EXTERNAL_REFERENCE_ID
+		--	   ,EXTERNAL_REFERENCE_ID
+	   ,NULL						-- ds 2024-09-20
 	   ,CASE
 			WHEN PRIMARYADDR IS NOT NULL
 				THEN 1

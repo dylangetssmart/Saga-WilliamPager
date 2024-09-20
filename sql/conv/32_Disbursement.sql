@@ -179,7 +179,8 @@ INSERT INTO [dbo].[sma_TRN_CaseUserTime]
 	   ,u3.usrnUserID
 	   ,t.DATECREATED
 	   ,u4.usrnContactID
-	   ,t.DATEREVISED
+		--	   ,t.DATEREVISED
+	   ,NULL									-- ds 2024-09-20
 	   ,NULL
 	   ,1
 	   ,plnnPlaintiffID

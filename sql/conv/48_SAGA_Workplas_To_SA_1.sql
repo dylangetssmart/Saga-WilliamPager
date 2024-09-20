@@ -129,12 +129,12 @@ INSERT INTO [dbo].[sma_MST_WorkPlanItemTemplates]
 		END
 	   , --   ,[CategoryId]
 		[CREATORID]
-	   ,--   ,[CreatorUserId]
-		[DATECREATED]
+	   ,NULL--   ,[CreatorUserId]
+		--[DATECREATED]							-- ds 2024-09-20
 	   , --   ,[CreationDate]
 		[REVISORID]
-	   ,--   ,[ModifyUserId]
-		[DATEREVISED]
+	   ,null--   ,[ModifyUserId]
+		--[DATEREVISED]							-- ds 2024-092-0
 	   ,--   ,[ModifyDate]
 		CASE [PRIORITY]
 			WHEN 'Critical'

@@ -57,7 +57,7 @@ INSERT INTO [sma_MST_OrgContacts]
 	   ,NULL
 	   ,NULL
 	   ,''
-	   ,phone
+	   ,left(phone,20)
 	   ,0
 	   ,CASE ISNULL(u1.usrnuserid, '')
 			WHEN ''
@@ -124,7 +124,7 @@ INSERT INTO [sma_MST_OrgContacts]
 	   ,NULL
 	   ,NULL
 	   ,''
-	   ,phone
+	   ,left(phone,20)
 	   ,0
 	   ,CASE ISNULL(u1.usrnuserid, '')
 			WHEN ''
