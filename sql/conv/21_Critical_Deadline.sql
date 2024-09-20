@@ -1,35 +1,145 @@
+USE WilliamPagerSA
 
-set ansi_warnings off
-insert into [sma_MST_CriticalDeadlineTypes] ([cdtsCode],[cdtsDscrptn],[cdtnRecUserID],[cdtdDtCreated],[cdtnModifyUserID],[cdtdDtModified],[cdtnLevelNo]
-,[ctdnCheckin],[ctdnCheckinn],[ctdnCriteria],cdtbActive )
-Select distinct upper(SUBSTRING(DESCRIPTION,0,4)) ,DESCRIPTION,368,GETDATE(),null,null,0,null,null,null,1
-FROM [WilliamPagerSaga].[dbo].PLRULTYP AType
-left join WilliamPagerSaga.dbo.MRULASS m on m.RULETYPEID=Atype.RULETYPEID
-where m.type =2 and LTRIM(RTRIM(description)) not in (select [cdtsDscrptn] from [sma_MST_CriticalDeadlineTypes])
+SET ANSI_WARNINGS OFF
+INSERT INTO [sma_MST_CriticalDeadlineTypes]
+	(
+	[cdtsCode]
+   ,[cdtsDscrptn]
+   ,[cdtnRecUserID]
+   ,[cdtdDtCreated]
+   ,[cdtnModifyUserID]
+   ,[cdtdDtModified]
+   ,[cdtnLevelNo]
+   ,[ctdnCheckin]
+   ,[ctdnCheckinn]
+   ,[ctdnCriteria]
+   ,cdtbActive
+	)
+	SELECT DISTINCT
+		UPPER(SUBSTRING(DESCRIPTION, 0, 4))
+	   ,DESCRIPTION
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,0
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,1
+	FROM [WilliamPagerSaga].[dbo].PLRULTYP AType
+	LEFT JOIN WilliamPagerSaga.dbo.MRULASS m
+		ON m.RULETYPEID = AType.RULETYPEID
+	WHERE m.type = 2
+		AND LTRIM(RTRIM(description)) NOT IN (
+			SELECT
+				[cdtsDscrptn]
+			FROM [sma_MST_CriticalDeadlineTypes]
+		)
 
-Alter table [sma_TRN_CriticalDeadlines] disable trigger all
+ALTER TABLE [sma_TRN_CriticalDeadlines] DISABLE TRIGGER ALL
 
 INSERT INTO [sma_TRN_CriticalDeadlines]
-([crdnCaseID],[crdnCriticalDeadlineTypeID],[crdsPartyFlag],[crdsPlntDefFlag],[crdnPlntDefID],[crddDueDate],[crddCompliedDate],[crdsComments],[crdnRecUserID]
-,[crddDtCreated],[crdnModifyUserID],[crddDtModified],[crdnLevelNo],[crdnContactCtgId],[crdnContactId],[id_discovery],[crdnDiscoveryTypeId],[crdsWaivedFlag],[crdsSupercededFlag]
-,[crdsCriteria])
-Select distinct casnCaseID,cdtnCriticalTypeID,'D','D',defnDefendentID,case when date1 between '1/1/1900' and '12/31/2079' then DATE1 end,case when   DATE2 between '1/1/1900' and '12/31/2079' then DATE2 else null end date2,
-isnull(convert(varchar(3800),a.NOTES),'')+char(13)+isnull(title,'')+char(13)+isnull(COMPDESCRIPTION,''),case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end,case when (a.datecreated) is null then GETDATE() when (a.datecreated) between '1/1/1900' and '12/31/2079' then a.DATECREATED else GETDATE() end,
-case isnull((u2.usrnuserid),'') when '' then 368 else (u2.usrnuserid) end,case  when (a.daterevised) is null then GETDATE() when a.DATEREVISED between '1/1/1900' and '12/31/2079' then a.DATEREVISED else GETDATE() end,0,
-null,null,null,null,null,null,null
-from [WilliamPagerSaga].dbo.MRULASS a
-Left join [WilliamPagerSaga].[dbo].PLRULTYP AType on a.RULETYPEID=Atype.RULETYPEID
-LEFT join [sma_MST_CriticalDeadlineTypes] on  LTRIM(RTRIM(description))=cdtsDscrptn
-Left join  [WilliamPagerSaga].dbo.MATTER b on a.MATTERID=b.MATTERID
-Left join sma_trn_cases  on cassCaseNumber=MATTERNUMBER
-left join sma_trn_defendants on defncaseid=casncaseid and defbisprimary=1
-left join sma_MST_SOLDetails on sldnCaseTypeID=casnOrgCaseTypeID and casnState=sldnStateID and defnsubrole=sldndefrole and sldnsoltypeid<>37
-left join sma_MST_IndvContacts l on l.cinsGrade=a.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=a.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-Where casncaseid is not null  and a.type=2 and a.title not like 'no fault%'  and a.TITLE not like '%statute%' 
-order by DATE2 desc   
+	(
+	[crdnCaseID]
+   ,[crdnCriticalDeadlineTypeID]
+   ,[crdsPartyFlag]
+   ,[crdsPlntDefFlag]
+   ,[crdnPlntDefID]
+   ,[crddDueDate]
+   ,[crddCompliedDate]
+   ,[crdsComments]
+   ,[crdnRecUserID]
+   ,[crddDtCreated]
+   ,[crdnModifyUserID]
+   ,[crddDtModified]
+   ,[crdnLevelNo]
+   ,[crdnContactCtgId]
+   ,[crdnContactId]
+   ,[id_discovery]
+   ,[crdnDiscoveryTypeId]
+   ,[crdsWaivedFlag]
+   ,[crdsSupercededFlag]
+   ,[crdsCriteria]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,cdtnCriticalTypeID
+	   ,'D'
+	   ,'D'
+	   ,defnDefendentID
+	   ,CASE
+			WHEN date1 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN DATE1
+		END
+	   ,CASE
+			WHEN date2 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN date2
+			ELSE NULL
+		END date2
+	   ,ISNULL(CONVERT(VARCHAR(3800), a.NOTES), '') + CHAR(13) + ISNULL(title, '') + CHAR(13) + ISNULL(COMPDESCRIPTION, '')
+	   ,CASE ISNULL((u1.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u1.usrnuserid)
+		END
+	   ,CASE
+			WHEN (a.datecreated) IS NULL
+				THEN GETDATE()
+			WHEN (a.datecreated) BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN a.DATECREATED
+			ELSE GETDATE()
+		END
+	   ,CASE ISNULL((u2.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u2.usrnuserid)
+		END
+	   ,CASE
+			WHEN (a.daterevised) IS NULL
+				THEN GETDATE()
+			WHEN a.DATEREVISED BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN a.DATEREVISED
+			ELSE GETDATE()
+		END
+	   ,0
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.MRULASS a
+	LEFT JOIN [WilliamPagerSaga].[dbo].PLRULTYP AType
+		ON a.RULETYPEID = AType.RULETYPEID
+	LEFT JOIN [sma_MST_CriticalDeadlineTypes]
+		ON LTRIM(RTRIM(description)) = cdtsDscrptn
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER b
+		ON a.MATTERID = b.MATTERID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_trn_defendants
+		ON defncaseid = casncaseid
+			AND defbisprimary = 1
+	LEFT JOIN sma_MST_SOLDetails
+		ON sldnCaseTypeID = casnOrgCaseTypeID
+			AND casnState = sldnStateID
+			AND defnsubrole = sldndefrole
+			AND sldnsoltypeid <> 37
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = a.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts m
+		ON m.cinsGrade = a.REVISORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = m.cinnContactID
+	WHERE casncaseid IS NOT NULL
+		AND a.type = 2
+		AND a.title NOT LIKE 'no fault%'
+		AND a.TITLE NOT LIKE '%statute%'
+	ORDER BY date2 DESC
 
-Alter table [sma_TRN_CriticalDeadlines] enable trigger all
+ALTER TABLE [sma_TRN_CriticalDeadlines] ENABLE TRIGGER ALL
 

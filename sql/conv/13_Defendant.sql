@@ -1,138 +1,441 @@
-set ansi_warnings off
-Declare @RoleID int 
+USE WilliamPagerSA
 
-Select @RoleID = MAX(sbrnsubroleid) from sma_MST_SubRole
+SET ANSI_WARNINGS OFF
+DECLARE @RoleID INT
+
+SELECT
+	@RoleID = MAX(sbrnsubroleid)
+FROM sma_MST_SubRole
 
 INSERT INTO [sma_mst_SubRoleCode]
-([srcsDscrptn],[srcnRoleID])
-Select distinct LTRIM(RTRIM(r.DESCRIPTION)),5 from WilliamPagerSaga.dbo.EROLE r
-join WilliamPagerSaga.dbo.ASSIGN a on a.ROLEID=r.ROLEID
-where PARTYTYPE=2 and LTRIM(RTRIM(r.DESCRIPTION)) not in (select LTRIM(RTRIM([srcsDscrptn])) from [sma_mst_SubRoleCode] where [srcnRoleID]=5)
+	(
+	[srcsDscrptn]
+   ,[srcnRoleID]
+	)
+	SELECT DISTINCT
+		LTRIM(RTRIM(r.DESCRIPTION))
+	   ,5
+	FROM WilliamPagerSaga.dbo.EROLE r
+	JOIN WilliamPagerSaga.dbo.ASSIGN a
+		ON a.ROLEID = r.ROLEID
+	WHERE PARTYTYPE = 2
+		AND LTRIM(RTRIM(r.DESCRIPTION)) NOT IN (
+			SELECT
+				LTRIM(RTRIM([srcsDscrptn]))
+			FROM [sma_mst_SubRoleCode]
+			WHERE [srcnRoleID] = 5
+		)
 
 INSERT INTO [sma_MST_SubRole]
-([sbrsCode],[sbrnRoleID],[sbrsDscrptn],[sbrnCaseTypeID],[sbrnPriority],[sbrnRecUserID],[sbrdDtCreated],[sbrnModifyUserID],[sbrdDtModified],[sbrnLevelNo],[sbrbDefualt],[saga],sbrnTypeCode)
-Select distinct '',5,substring(srcsDscrptn,0,50),cstnCaseTypeID,'',368,GETDATE(),null,null,'',null,'',srcnCodeId
-from [WilliamPagerSaga].[dbo].[LAWTYPE] c
-Left Join sma_MST_CaseType on cstsType=c.DESCRIPTION
-cross join [sma_mst_SubRoleCode]
-where srcsDscrptn in (Select distinct LTRIM(RTRIM(r.DESCRIPTION)) from WilliamPagerSaga.dbo.EROLE r
-join WilliamPagerSaga.dbo.ASSIGN a on a.ROLEID=r.ROLEID
-where PARTYTYPE=2)
+	(
+	[sbrsCode]
+   ,[sbrnRoleID]
+   ,[sbrsDscrptn]
+   ,[sbrnCaseTypeID]
+   ,[sbrnPriority]
+   ,[sbrnRecUserID]
+   ,[sbrdDtCreated]
+   ,[sbrnModifyUserID]
+   ,[sbrdDtModified]
+   ,[sbrnLevelNo]
+   ,[sbrbDefualt]
+   ,[saga]
+   ,sbrnTypeCode
+	)
+	SELECT DISTINCT
+		''
+	   ,5
+	   ,SUBSTRING(srcsDscrptn, 0, 50)
+	   ,cstnCaseTypeID
+	   ,''
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,NULL
+	   ,''
+	   ,srcnCodeId
+	FROM [WilliamPagerSaga].[dbo].[LAWTYPE] c
+	LEFT JOIN sma_MST_CaseType
+		ON cstsType = c.DESCRIPTION
+	CROSS JOIN [sma_mst_SubRoleCode]
+	WHERE srcsDscrptn IN (
+			SELECT DISTINCT
+				LTRIM(RTRIM(r.DESCRIPTION))
+			FROM WilliamPagerSaga.dbo.EROLE r
+			JOIN WilliamPagerSaga.dbo.ASSIGN a
+				ON a.ROLEID = r.ROLEID
+			WHERE PARTYTYPE = 2
+		)
 
-alter table sma_trn_defendants disable trigger all
+ALTER TABLE sma_trn_defendants DISABLE TRIGGER ALL
 
 INSERT INTO [sma_TRN_Defendants]
-([defnCaseID],[defnContactCtgID],[defnContactID],[defnAddressID],[defnSubRole],[defbIsPrimary],[defbCounterClaim],[defbThirdParty],[defsThirdPartyRole],[defnPriority],[defdFrmDt],[defdToDt],[defnRecUserID],
-[defdDtCreated],[defnModifyUserID],[defdDtModified],[defnLevelNo],[defsMarked],[saga],defsComments)  
-Select casnCaseID,case when (isnull(cinncontactid,''))<>'' then (cinnContactCtg) when (isnull(conncontactid,''))<>'' then (connContactCtg) else 1 end ,
-case when (isnull(cinncontactid,''))<>'' then (cinnContactID) when (isnull(conncontactid,''))<>'' then (connContactID) else 11 end,
-case when (isnull(cinncontactid,''))<>'' then (d.addnaddressid) when (isnull(conncontactid,''))<>'' then (e.addnaddressid) else 3 end,
-(sbrnSubRoleId),0,0,0,substring((z.DESCRIPTION),0,30),0,(casdDtCreated),null,(casnRecUserID),(casdDtCreated),(casnModifyUserID),(casdDtModified),null,null,null,
- convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')
-     
-      )) 
-FROM [WilliamPagerSaga].[dbo].ASSIGN a
-left join [WilliamPagerSaga].[dbo].[Matter] b on b.MATTERID=a.MATTERID
-left join [WilliamPagerSaga].[dbo].[erole] z on z.roleid=a.ROLEID
-left join [WilliamPagerSaga].[dbo].note n on n.noteid=a.NOTEID
-left join sma_trn_cases on cassCaseNumber=MATTERNUMBER
-left join  sma_MST_IndvContacts i1 on LTRIM(rtrim(i1.cinsGrade))=a.ENTITYID
-left join  sma_MST_OrgContacts o1 on LTRIM(rtrim(o1.connLevelNo))=a.ENTITYID
-left join sma_MST_Address d on d.addnContactID=cinncontactid and d.addnContactCtgID=1 and d.addbPrimary=1
-left join sma_MST_Address e on e.addnContactID=cinncontactid and e.addnContactCtgID=1 and e.addbPrimary=1
---outer apply(select top 1 addnaddressid as orgAddressID from  sma_MST_Address where addnContactID=conncontactid and addnContactCtgID=2 order by isnull(addbPrimary,0) desc) e
---outer apply(select top 1 sbrnSubRoleId from  sma_MST_SubRole where sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5  order by isnull(sbrbDefualt,0) desc) c
---left join sma_MST_SubRole on sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5 and sbrsdscrptn like '%(D)-Owner/Operator%'
-left join [sma_mst_SubRoleCode] on [srcsDscrptn]=z.DESCRIPTION
-outer apply(select top 1 sbrnSubRoleId from  sma_MST_SubRole where sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5 and sbrsDscrptn=z.DESCRIPTION ) c
-Where casnCaseID is not null  and a.PARTYTYPE=2
+	(
+	[defnCaseID]
+   ,[defnContactCtgID]
+   ,[defnContactID]
+   ,[defnAddressID]
+   ,[defnSubRole]
+   ,[defbIsPrimary]
+   ,[defbCounterClaim]
+   ,[defbThirdParty]
+   ,[defsThirdPartyRole]
+   ,[defnPriority]
+   ,[defdFrmDt]
+   ,[defdToDt]
+   ,[defnRecUserID]
+   ,[defdDtCreated]
+   ,[defnModifyUserID]
+   ,[defdDtModified]
+   ,[defnLevelNo]
+   ,[defsMarked]
+   ,[saga]
+   ,defsComments
+	)
+	SELECT
+		casnCaseID
+	   ,CASE
+			WHEN (ISNULL(cinncontactid, '')) <> ''
+				THEN (cinnContactCtg)
+			WHEN (ISNULL(conncontactid, '')) <> ''
+				THEN (connContactCtg)
+			ELSE 1
+		END
+	   ,CASE
+			WHEN (ISNULL(cinncontactid, '')) <> ''
+				THEN (cinnContactID)
+			WHEN (ISNULL(conncontactid, '')) <> ''
+				THEN (connContactID)
+			ELSE 11
+		END
+	   ,CASE
+			WHEN (ISNULL(cinncontactid, '')) <> ''
+				THEN (d.addnaddressid)
+			WHEN (ISNULL(conncontactid, '')) <> ''
+				THEN (e.addnaddressid)
+			ELSE 3
+		END
+	   ,(sbrnSubRoleId)
+	   ,0
+	   ,0
+	   ,0
+	   ,SUBSTRING((z.DESCRIPTION), 0, 30)
+	   ,0
+	   ,(casdDtCreated)
+	   ,NULL
+	   ,(casnRecUserID)
+	   ,(casdDtCreated)
+	   ,(casnModifyUserID)
+	   ,(casdDtModified)
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
+		dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+		, '}', '')
+
+		))
+	FROM [WilliamPagerSaga].[dbo].ASSIGN a
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] b
+		ON b.MATTERID = a.MATTERID
+	LEFT JOIN [WilliamPagerSaga].[dbo].[erole] z
+		ON z.roleid = a.ROLEID
+	LEFT JOIN [WilliamPagerSaga].[dbo].note n
+		ON n.noteid = a.NOTEID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON LTRIM(RTRIM(i1.cinsGrade)) = a.ENTITYID
+	LEFT JOIN sma_MST_OrgContacts o1
+		ON LTRIM(RTRIM(o1.connLevelNo)) = a.ENTITYID
+	LEFT JOIN sma_MST_Address d
+		ON d.addnContactID = cinncontactid
+			AND d.addnContactCtgID = 1
+			AND d.addbPrimary = 1
+	LEFT JOIN sma_MST_Address e
+		ON e.addnContactID = cinncontactid
+			AND e.addnContactCtgID = 1
+			AND e.addbPrimary = 1
+	--outer apply(select top 1 addnaddressid as orgAddressID from  sma_MST_Address where addnContactID=conncontactid and addnContactCtgID=2 order by isnull(addbPrimary,0) desc) e
+	--outer apply(select top 1 sbrnSubRoleId from  sma_MST_SubRole where sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5  order by isnull(sbrbDefualt,0) desc) c
+	--left join sma_MST_SubRole on sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5 and sbrsdscrptn like '%(D)-Owner/Operator%'
+	LEFT JOIN [sma_mst_SubRoleCode]
+		ON [srcsDscrptn] = z.DESCRIPTION
+	OUTER APPLY (
+		SELECT TOP 1
+			sbrnSubRoleId
+		FROM sma_MST_SubRole
+		WHERE sbrnCaseTypeID = casnOrgCaseTypeID
+			AND sbrnRoleId = 5
+			AND sbrsDscrptn = z.DESCRIPTION
+	) c
+	WHERE casnCaseID IS NOT NULL
+		AND a.PARTYTYPE = 2
 --and z.DESCRIPTION like '%defenda%' and z.DESCRIPTION not like '%carrier%' and z.DESCRIPTION not like '%insured%' and z.DESCRIPTION not like '%adjuster%' and z.DESCRIPTION not like '%attorney%'
 
 INSERT INTO [sma_TRN_Defendants]
-([defnCaseID],[defnContactCtgID],[defnContactID],[defnAddressID],[defnSubRole],[defbIsPrimary],[defbCounterClaim],[defbThirdParty],[defsThirdPartyRole],[defnPriority],[defdFrmDt],[defdToDt],[defnRecUserID],
-[defdDtCreated],[defnModifyUserID],[defdDtModified],[defnLevelNo],[defsMarked],[saga])  
-Select casnCaseID, 1 ,
-9,
-2,
-(sbrnSubRoleId),1,0,0,null,0,getdate(),null,368,getdate(),null,null,null,null,null
-from sma_trn_cases
-outer apply(select top 1 sbrnSubRoleId from  sma_MST_SubRole where sbrnCaseTypeID=casnOrgCaseTypeID and sbrnRoleId=5  order by isnull(sbrbDefualt,0) desc) c
-where casncaseid not in (select defncaseid from sma_trn_defendants )
+	(
+	[defnCaseID]
+   ,[defnContactCtgID]
+   ,[defnContactID]
+   ,[defnAddressID]
+   ,[defnSubRole]
+   ,[defbIsPrimary]
+   ,[defbCounterClaim]
+   ,[defbThirdParty]
+   ,[defsThirdPartyRole]
+   ,[defnPriority]
+   ,[defdFrmDt]
+   ,[defdToDt]
+   ,[defnRecUserID]
+   ,[defdDtCreated]
+   ,[defnModifyUserID]
+   ,[defdDtModified]
+   ,[defnLevelNo]
+   ,[defsMarked]
+   ,[saga]
+	)
+	SELECT
+		casnCaseID
+	   ,1
+	   ,9
+	   ,2
+	   ,(sbrnSubRoleId)
+	   ,1
+	   ,0
+	   ,0
+	   ,NULL
+	   ,0
+	   ,GETDATE()
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM sma_trn_cases
+	OUTER APPLY (
+		SELECT TOP 1
+			sbrnSubRoleId
+		FROM sma_MST_SubRole
+		WHERE sbrnCaseTypeID = casnOrgCaseTypeID
+			AND sbrnRoleId = 5
+		ORDER BY ISNULL(sbrbDefualt, 0) DESC
+	) c
+	WHERE casncaseid NOT IN (
+			SELECT
+				defncaseid
+			FROM sma_trn_defendants
+		)
 
-Update sma_TRN_Defendants 
-set defbIsPrimary=1
-where defnDefendentID in (
-select MIN(defnDefendentID) from sma_TRN_Defendants
-where defnCaseID in (
-select defnCaseID from sma_TRN_Defendants
-Except
-select defnCaseID from sma_TRN_Defendants where defbIsPrimary=1)
-Group by defnCaseID)
-alter table sma_trn_defendants enable trigger all
+UPDATE sma_TRN_Defendants
+SET defbIsPrimary = 1
+WHERE defnDefendentID IN (
+	SELECT
+		MIN(defnDefendentID)
+	FROM sma_TRN_Defendants
+	WHERE defnCaseID IN (
+			SELECT
+				defnCaseID
+			FROM sma_TRN_Defendants
+			EXCEPT
+			SELECT
+				defnCaseID
+			FROM sma_TRN_Defendants
+			WHERE defbIsPrimary = 1
+		)
+	GROUP BY defnCaseID
+)
+ALTER TABLE sma_trn_defendants ENABLE TRIGGER ALL
 
-Alter table sma_MST_SubRole disable trigger all
-Delete from sma_MST_SubRole 
-where sbrnSubRoleId not in (select defnSubRole from sma_TRN_Defendants left join sma_TRN_CaseS on casnCaseID=defnCaseID left join sma_MST_CaseType on cstnCaseTypeID=casnOrgCaseTypeID where cstnCaseTypeID=casnOrgCaseTypeID and cstnCaseTypeID=sbrnCaseTypeID )
-and sbrnRoleID=5 and sbrnSubRoleId>@RoleID
-Alter table sma_MST_SubRole enable trigger all
+ALTER TABLE sma_MST_SubRole DISABLE TRIGGER ALL
+DELETE FROM sma_MST_SubRole
+WHERE sbrnSubRoleId NOT IN (
+		SELECT
+			defnSubRole
+		FROM sma_TRN_Defendants
+		LEFT JOIN sma_TRN_CaseS
+			ON casnCaseID = defnCaseID
+		LEFT JOIN sma_MST_CaseType
+			ON cstnCaseTypeID = casnOrgCaseTypeID
+		WHERE cstnCaseTypeID = casnOrgCaseTypeID
+			AND cstnCaseTypeID = sbrnCaseTypeID
+	)
+	AND sbrnRoleID = 5
+	AND sbrnSubRoleId > @RoleID
+ALTER TABLE sma_MST_SubRole ENABLE TRIGGER ALL
 
-go
+GO
 INSERT INTO [sma_MST_SOLDetails]
-([sldnSOLTypeID],[sldnCaseTypeID],[sldnDefRole],[sldnStateID],[sldnYears],[sldnMonths],[sldnDays],[sldnSOLDays],[sldnRecUserID]
-,[slddDtCreated],[sldnModifyUserID],[slddDtModified],[sldnLevelNo],[sldsDorP],[sldsSOLName],[sldbIsIncidDtEffect],[sldbDefualt])
-Select 16,cstnCaseTypeID,sbrnSubRoleId,stcnStateID,1,0,0,0,368,GETDATE(),null,null,0,'D','SOL',null,0 from   sma_MST_CaseType 
-left join sma_MST_SubRole on sbrnCaseTypeID=cstnCaseTypeID and sbrnRoleID=5
-left join [sma_MST_StateCaseTypes] on stcnCaseTypeID=cstnCaseTypeID
-where cstnCaseTypeID>=(select MIN(cstncasetypeid) from sma_MST_CaseType where cstdDtCreated >GETDATE()-1) 
+	(
+	[sldnSOLTypeID]
+   ,[sldnCaseTypeID]
+   ,[sldnDefRole]
+   ,[sldnStateID]
+   ,[sldnYears]
+   ,[sldnMonths]
+   ,[sldnDays]
+   ,[sldnSOLDays]
+   ,[sldnRecUserID]
+   ,[slddDtCreated]
+   ,[sldnModifyUserID]
+   ,[slddDtModified]
+   ,[sldnLevelNo]
+   ,[sldsDorP]
+   ,[sldsSOLName]
+   ,[sldbIsIncidDtEffect]
+   ,[sldbDefualt]
+	)
+	SELECT
+		16
+	   ,cstnCaseTypeID
+	   ,sbrnSubRoleId
+	   ,stcnStateID
+	   ,1
+	   ,0
+	   ,0
+	   ,0
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,0
+	   ,'D'
+	   ,'SOL'
+	   ,NULL
+	   ,0
+	FROM sma_MST_CaseType
+	LEFT JOIN sma_MST_SubRole
+		ON sbrnCaseTypeID = cstnCaseTypeID
+			AND sbrnRoleID = 5
+	LEFT JOIN [sma_MST_StateCaseTypes]
+		ON stcnCaseTypeID = cstnCaseTypeID
+	WHERE cstnCaseTypeID >= (
+			SELECT
+				MIN(cstncasetypeid)
+			FROM sma_MST_CaseType
+			WHERE cstdDtCreated > GETDATE() - 1
+		)
 
 INSERT INTO [sma_MST_SOLDetails]
-([sldnSOLTypeID],[sldnCaseTypeID],[sldnDefRole],[sldnStateID],[sldnYears],[sldnMonths],[sldnDays],[sldnSOLDays],[sldnRecUserID]
-,[slddDtCreated],[sldnModifyUserID],[slddDtModified],[sldnLevelNo],[sldsDorP],[sldsSOLName],[sldbIsIncidDtEffect],[sldbDefualt])
-Select 3,cstnCaseTypeID,sbrnSubRoleId,stcnStateID,0,0,30,0,368,GETDATE(),null,null,0,'P','No Fault',null,0 from   sma_MST_CaseType 
-left join sma_MST_SubRole on sbrnCaseTypeID=cstnCaseTypeID and sbrnRoleID=4 and sbrsDscrptn='(P)-Plaintiff'
-left join [sma_MST_StateCaseTypes] on stcnCaseTypeID=cstnCaseTypeID
-where cstnCaseTypeID>=(select MIN(cstncasetypeid) from sma_MST_CaseType where cstdDtCreated >GETDATE()-1)  
+	(
+	[sldnSOLTypeID]
+   ,[sldnCaseTypeID]
+   ,[sldnDefRole]
+   ,[sldnStateID]
+   ,[sldnYears]
+   ,[sldnMonths]
+   ,[sldnDays]
+   ,[sldnSOLDays]
+   ,[sldnRecUserID]
+   ,[slddDtCreated]
+   ,[sldnModifyUserID]
+   ,[slddDtModified]
+   ,[sldnLevelNo]
+   ,[sldsDorP]
+   ,[sldsSOLName]
+   ,[sldbIsIncidDtEffect]
+   ,[sldbDefualt]
+	)
+	SELECT
+		3
+	   ,cstnCaseTypeID
+	   ,sbrnSubRoleId
+	   ,stcnStateID
+	   ,0
+	   ,0
+	   ,30
+	   ,0
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,0
+	   ,'P'
+	   ,'No Fault'
+	   ,NULL
+	   ,0
+	FROM sma_MST_CaseType
+	LEFT JOIN sma_MST_SubRole
+		ON sbrnCaseTypeID = cstnCaseTypeID
+			AND sbrnRoleID = 4
+			AND sbrsDscrptn = '(P)-Plaintiff'
+	LEFT JOIN [sma_MST_StateCaseTypes]
+		ON stcnCaseTypeID = cstnCaseTypeID
+	WHERE cstnCaseTypeID >= (
+			SELECT
+				MIN(cstncasetypeid)
+			FROM sma_MST_CaseType
+			WHERE cstdDtCreated > GETDATE() - 1
+		)
 
-go
-select distinct plnnPlaintiffID,sb1.sbrnSubRoleId as bb1,sb2.sbrnSubRoleId as sb2,plnnRole,sb1.sbrsDscrptn as sb1ds,sb2.sbrsDscrptn as sb2ds 
-into #tmpplntf
-from sma_TRN_Plaintiff
-left join sma_trn_cases on casnCaseID=plnnCaseID
-left join sma_MST_CaseType on cstnCaseTypeID=casnOrgCaseTypeID
-left join sma_mst_subrole sb1 on sb1.sbrnSubRoleId=plnnRole 
-left join sma_mst_subrole sb2 on sb2.sbrnCaseTypeID=cstnCaseTypeID and sb2.sbrsDscrptn=sb1.sbrsDscrptn and sb2.sbrnRoleID=4
-where sb1.sbrnSubRoleId<>sb2.sbrnSubRoleId 
+GO
+SELECT DISTINCT
+	plnnPlaintiffID
+   ,sb1.sbrnSubRoleId AS bb1
+   ,sb2.sbrnSubRoleId AS sb2
+   ,plnnRole
+   ,sb1.sbrsDscrptn	  AS sb1ds
+   ,sb2.sbrsDscrptn	  AS sb2ds INTO #tmpplntf
+FROM sma_TRN_Plaintiff
+LEFT JOIN sma_trn_cases
+	ON casnCaseID = plnnCaseID
+LEFT JOIN sma_MST_CaseType
+	ON cstnCaseTypeID = casnOrgCaseTypeID
+LEFT JOIN sma_mst_subrole sb1
+	ON sb1.sbrnSubRoleId = plnnRole
+LEFT JOIN sma_mst_subrole sb2
+	ON sb2.sbrnCaseTypeID = cstnCaseTypeID
+		AND sb2.sbrsDscrptn = sb1.sbrsDscrptn
+		AND sb2.sbrnRoleID = 4
+WHERE sb1.sbrnSubRoleId <> sb2.sbrnSubRoleId
 
-Alter table sma_trn_plaintiff disable trigger all
-Update a
-set plnnRole=sb2,plnnPlaintiffRole=sb2
-from sma_TRN_Plaintiff a
-join #tmpplntf p on p.plnnPlaintiffID=a.plnnPlaintiffID
-where p.plnnPlaintiffID=a.plnnPlaintiffID 
-Alter table sma_trn_plaintiff enable trigger all
+ALTER TABLE sma_trn_plaintiff DISABLE TRIGGER ALL
+UPDATE a
+SET plnnRole = sb2
+   ,plnnPlaintiffRole = sb2
+FROM sma_TRN_Plaintiff a
+JOIN #tmpplntf p
+	ON p.plnnPlaintiffID = a.plnnPlaintiffID
+WHERE p.plnnPlaintiffID = a.plnnPlaintiffID
+ALTER TABLE sma_trn_plaintiff ENABLE TRIGGER ALL
 
-drop table #tmpplntf
+DROP TABLE #tmpplntf
 
-go
-select distinct defnDefendentID,sb1.sbrnSubRoleId as bb1,sb2.sbrnSubRoleId as sb2,defnSubRole,sb1.sbrsDscrptn as sb1ds,sb2.sbrsDscrptn as sb2ds 
-into #tmpdef
-from sma_TRN_Defendants
-left join sma_trn_cases on casnCaseID=defnCaseID
-left join sma_MST_CaseType on cstnCaseTypeID=casnOrgCaseTypeID
-left join sma_mst_subrole sb1 on sb1.sbrnSubRoleId=defnSubRole 
-left join sma_mst_subrole sb2 on sb2.sbrnCaseTypeID=cstnCaseTypeID and sb2.sbrsDscrptn=sb1.sbrsDscrptn and sb2.sbrnRoleID=5
-where sb1.sbrnSubRoleId<>sb2.sbrnSubRoleId 
+GO
+SELECT DISTINCT
+	defnDefendentID
+   ,sb1.sbrnSubRoleId AS bb1
+   ,sb2.sbrnSubRoleId AS sb2
+   ,defnSubRole
+   ,sb1.sbrsDscrptn	  AS sb1ds
+   ,sb2.sbrsDscrptn	  AS sb2ds INTO #tmpdef
+FROM sma_TRN_Defendants
+LEFT JOIN sma_trn_cases
+	ON casnCaseID = defnCaseID
+LEFT JOIN sma_MST_CaseType
+	ON cstnCaseTypeID = casnOrgCaseTypeID
+LEFT JOIN sma_mst_subrole sb1
+	ON sb1.sbrnSubRoleId = defnSubRole
+LEFT JOIN sma_mst_subrole sb2
+	ON sb2.sbrnCaseTypeID = cstnCaseTypeID
+		AND sb2.sbrsDscrptn = sb1.sbrsDscrptn
+		AND sb2.sbrnRoleID = 5
+WHERE sb1.sbrnSubRoleId <> sb2.sbrnSubRoleId
 
-Alter table sma_TRN_Defendants disable trigger all
-Update a
-set defnSubRole=sb2
-from sma_TRN_Defendants a
-join #tmpdef p on p.defnDefendentID=a.defnDefendentID
-where p.defnDefendentID=a.defnDefendentID 
-Alter table sma_TRN_Defendants enable trigger all
+ALTER TABLE sma_TRN_Defendants DISABLE TRIGGER ALL
+UPDATE a
+SET defnSubRole = sb2
+FROM sma_TRN_Defendants a
+JOIN #tmpdef p
+	ON p.defnDefendentID = a.defnDefendentID
+WHERE p.defnDefendentID = a.defnDefendentID
+ALTER TABLE sma_TRN_Defendants ENABLE TRIGGER ALL
 
-drop table #tmpdef
-go
+DROP TABLE #tmpdef
+GO
 

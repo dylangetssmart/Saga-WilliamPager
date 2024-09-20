@@ -1,4 +1,4 @@
-
+USE WilliamPagerSA
 
 /*
 alter table [dbo].[sma_TRN_Documents] disable trigger all
@@ -9,10 +9,29 @@ alter table [dbo].[sma_TRN_Documents] enable trigger all
 
 
 INSERT INTO [sma_MST_ScannedDocCategories]
-([sctgsCategoryCode],[sctgsCategoryName],[sctgnRecUserID],[sctgdDtCreated],[sctgnModifyUserID],[sctgdDtModified])
-Select CODE,substring(DESCRIPTION,0,50),368,GETDATE(),null,null from [WilliamPagerSaga].dbo.DOCCAT
-where not exists(select ctgsCategoryName from sma_MST_CategoriesNew where ctgsCategoryName=DESCRIPTION)
-go
+	(
+	[sctgsCategoryCode]
+   ,[sctgsCategoryName]
+   ,[sctgnRecUserID]
+   ,[sctgdDtCreated]
+   ,[sctgnModifyUserID]
+   ,[sctgdDtModified]
+	)
+	SELECT
+		CODE
+	   ,SUBSTRING(DESCRIPTION, 0, 50)
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.DOCCAT
+	WHERE NOT EXISTS (
+			SELECT
+				ctgsCategoryName
+			FROM sma_MST_CategoriesNew
+			WHERE ctgsCategoryName = DESCRIPTION
+		)
+GO
 --INSERT INTO [sma_MST_ScannedSubCategories]
 --([sctgnCategoryID],[scanSubCategoryCode],[scanSubCategoryName],[scanRecUserID],[scanDtCreated],[scanModifyUserID],[scanDtModified])     
 --Select distinct sctgnCategoryID,CODE,DESCRIPTION,368,GETDATE(),null,null from [WilliamPagerSaga].dbo.DOCCAT
@@ -20,63 +39,187 @@ go
 --where not exists(select b.[sctgsCategoryName] from [sma_MST_ScannedSubCategories] a join [sma_MST_ScannedDocCategories] b on a.sctgnCategoryID=b.[sctgnCategoryID] where b.[sctgsCategoryName]=DESCRIPTION)
 
 INSERT INTO [sma_MST_ScannedSubCategories]
-([sctgnCategoryID],[scanSubCategoryCode],[scanSubCategoryName],[scanRecUserID],[scanDtCreated],[scanModifyUserID],[scanDtModified])    
-Select distinct sctgnCategoryID,'',substring(dtype.DESCRIPTION,0,50),368,getdate(),null,null
-From [WilliamPagerSaga].dbo.document d 
-Left Join [WilliamPagerSaga].dbo.DOCCAT dcat on  d.CategoryID=dcat.CategoryID  
-LEFT Join [WilliamPagerSaga].dbo.doctype dType on  d.TYPEID=dType.TypeID 
-left join [sma_MST_ScannedDocCategories] s1 on dcat.DESCRIPTION=[sctgsCategoryName]
-go
-Alter Table sma_trn_documents disable trigger all
+	(
+	[sctgnCategoryID]
+   ,[scanSubCategoryCode]
+   ,[scanSubCategoryName]
+   ,[scanRecUserID]
+   ,[scanDtCreated]
+   ,[scanModifyUserID]
+   ,[scanDtModified]
+	)
+	SELECT DISTINCT
+		sctgnCategoryID
+	   ,''
+	   ,SUBSTRING(dType.DESCRIPTION, 0, 50)
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.document d
+	LEFT JOIN [WilliamPagerSaga].dbo.DOCCAT dcat
+		ON d.CategoryID = dcat.CategoryID
+	LEFT JOIN [WilliamPagerSaga].dbo.doctype dType
+		ON d.TYPEID = dType.TypeID
+	LEFT JOIN [sma_MST_ScannedDocCategories] s1
+		ON dcat.DESCRIPTION = [sctgsCategoryName]
+GO
+ALTER TABLE sma_trn_documents DISABLE TRIGGER ALL
 
 SET QUOTED_IDENTIFIER ON;
 GO
 
 INSERT INTO [sma_TRN_Documents]
-([docnCaseID],[docsDocumentName],[docsDocumentPath],[docsDocumentData],[docnCategoryID],[docnSubCategoryID],[docnFromContactCtgID]
-,[docnFromContactID],[docsToContact],[docsDocType],[docnTemplateID],[docbAttachFlag],[docsDescrptn],[docnAuthor],[docsDocsrflag]
-,[docnRecUserID],[docdDtCreated],[docnModifyUserID],[docdDtModified],[docnLevelNo],[ctgnCategoryID],[sctnSubCategoryID],[sctssSubSubCategoryID]
-,[sctsssSubSubSubCategoryID],[docnMedProvContactctgID],[docnMedProvContactID],[docnComments],[docnReasonReject],[docsReviewerContactId]
-,[docsReviewDate],[docsDocumentAnalysisResultId],[docsIsReviewed],[docsToContactID],[docsToContactCtgID],[docdLastUpdated],[docnPriority])
-Select distinct casnCaseID,substring(FILENAME,0,200),substring(PATH,0,1000),'',s1.sctgnCategoryID,s2.scanSubCategoryID,case when froml.cinnContactID is not null then 1 when fromo.connContactID is not null then 2 end
-,case when froml.cinnContactID is not null then froml.cinnContactID when fromo.connContactID is not null then fromo.connContactID end,'','Doc',null,null,substring(d.DESCRIPTION,0,200),0,'',u1.usrnUserID,case isdate(d.datecreated) when 0 then GETDATE() else (d.datecreated) end,
-u2.usrnUserID,case when DOCDATE between '1/1/1900' and '12/31/2079' then DOCDATE end,'',s1.sctgnCategoryID,s2.scanSubCategoryid,'','','','','','',null,null,null,null,null,null,d.DATEREVISED,3
-From [WilliamPagerSaga].dbo.document d   
-Left Join [WilliamPagerSaga].dbo.MATTER m on m.MATTERID=d.MATTERID
-Left Join [WilliamPagerSaga].dbo.entities e on d.AUTHORID=e.entityid
-Left Join [WilliamPagerSaga].dbo.DOCCAT dcat on  d.CategoryID=dcat.CategoryID  
-LEFT Join [WilliamPagerSaga].dbo.Docent r on d.documentid=r.documentid
-LEFT Join [WilliamPagerSaga].dbo.doctype dType on  d.TYPEID=dType.TypeID 
-LEFT Join [WilliamPagerSaga].dbo.LW_A_MATTERTYPE LMT on  m.MATTERTYPEID=LMT.MATTERTYPEID
-Left join sma_trn_cases  on cassCaseNumber=m.MATTERNUMBER
-left join sma_MST_IndvContacts l on l.cinsGrade=d.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts g on g.cinsGrade=d.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=g.cinnContactID
-left join sma_MST_IndvContacts froml on froml.cinsGrade=d.AUTHORID
-left join sma_MST_OrgContacts fromo on fromo.connLevelNo=d.AUTHORID
-left join [sma_MST_ScannedDocCategories] s1 on substring(dcat.DESCRIPTION,0,50)=[sctgsCategoryName]
-left join [sma_MST_ScannedSubCategories] s2 on s2.sctgnCategoryID=s1.sctgnCategoryID and substring(dtype.DESCRIPTION,0,50)=s2.scanSubCategoryName
-where  casnCaseID is not null
+	(
+	[docnCaseID]
+   ,[docsDocumentName]
+   ,[docsDocumentPath]
+   ,[docsDocumentData]
+   ,[docnCategoryID]
+   ,[docnSubCategoryID]
+   ,[docnFromContactCtgID]
+   ,[docnFromContactID]
+   ,[docsToContact]
+   ,[docsDocType]
+   ,[docnTemplateID]
+   ,[docbAttachFlag]
+   ,[docsDescrptn]
+   ,[docnAuthor]
+   ,[docsDocsrflag]
+   ,[docnRecUserID]
+   ,[docdDtCreated]
+   ,[docnModifyUserID]
+   ,[docdDtModified]
+   ,[docnLevelNo]
+   ,[ctgnCategoryID]
+   ,[sctnSubCategoryID]
+   ,[sctssSubSubCategoryID]
+   ,[sctsssSubSubSubCategoryID]
+   ,[docnMedProvContactctgID]
+   ,[docnMedProvContactID]
+   ,[docnComments]
+   ,[docnReasonReject]
+   ,[docsReviewerContactId]
+   ,[docsReviewDate]
+   ,[docsDocumentAnalysisResultId]
+   ,[docsIsReviewed]
+   ,[docsToContactID]
+   ,[docsToContactCtgID]
+   ,[docdLastUpdated]
+   ,[docnPriority]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,SUBSTRING(FILENAME, 0, 200)
+	   ,SUBSTRING(PATH, 0, 1000)
+	   ,''
+	   ,s1.sctgnCategoryID
+	   ,s2.scanSubCategoryID
+	   ,CASE
+			WHEN froml.cinnContactID IS NOT NULL
+				THEN 1
+			WHEN fromo.connContactID IS NOT NULL
+				THEN 2
+		END
+	   ,CASE
+			WHEN froml.cinnContactID IS NOT NULL
+				THEN froml.cinnContactID
+			WHEN fromo.connContactID IS NOT NULL
+				THEN fromo.connContactID
+		END
+	   ,''
+	   ,'Doc'
+	   ,NULL
+	   ,NULL
+	   ,SUBSTRING(d.DESCRIPTION, 0, 200)
+	   ,0
+	   ,''
+	   ,u1.usrnUserID
+	   ,CASE ISDATE(d.datecreated)
+			WHEN 0
+				THEN GETDATE()
+			ELSE (d.datecreated)
+		END
+	   ,u2.usrnUserID
+	   ,CASE
+			WHEN DOCDATE BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN DOCDATE
+		END
+	   ,''
+	   ,s1.sctgnCategoryID
+	   ,s2.scanSubCategoryid
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,d.DATEREVISED
+	   ,3
+	FROM [WilliamPagerSaga].dbo.document d
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER m
+		ON m.MATTERID = d.MATTERID
+	LEFT JOIN [WilliamPagerSaga].dbo.entities e
+		ON d.AUTHORID = e.entityid
+	LEFT JOIN [WilliamPagerSaga].dbo.DOCCAT dcat
+		ON d.CategoryID = dcat.CategoryID
+	LEFT JOIN [WilliamPagerSaga].dbo.Docent r
+		ON d.documentid = r.documentid
+	LEFT JOIN [WilliamPagerSaga].dbo.doctype dType
+		ON d.TYPEID = dType.TypeID
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_MATTERTYPE LMT
+		ON m.MATTERTYPEID = LMT.MATTERTYPEID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = m.MATTERNUMBER
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = d.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts g
+		ON g.cinsGrade = d.REVISORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = g.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts froml
+		ON froml.cinsGrade = d.AUTHORID
+	LEFT JOIN sma_MST_OrgContacts fromo
+		ON fromo.connLevelNo = d.AUTHORID
+	LEFT JOIN [sma_MST_ScannedDocCategories] s1
+		ON SUBSTRING(dcat.DESCRIPTION, 0, 50) = [sctgsCategoryName]
+	LEFT JOIN [sma_MST_ScannedSubCategories] s2
+		ON s2.sctgnCategoryID = s1.sctgnCategoryID
+			AND SUBSTRING(dType.DESCRIPTION, 0, 50) = s2.scanSubCategoryName
+	WHERE casnCaseID IS NOT NULL
 
 GO
 
 SET QUOTED_IDENTIFIER OFF;
 
-Alter Table sma_trn_documents Enable trigger all
+ALTER TABLE sma_trn_documents ENABLE TRIGGER ALL
 
 
 
 GO
 
-IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_sma_TRN_MassMailing_sma_MST_Templates]') AND parent_object_id = OBJECT_ID(N'[dbo].[sma_TRN_MassMailing]'))
-ALTER TABLE [dbo].[sma_TRN_MassMailing] DROP CONSTRAINT [FK_sma_TRN_MassMailing_sma_MST_Templates]
+IF EXISTS (
+		SELECT
+			*
+		FROM sys.foreign_keys
+		WHERE object_id = OBJECT_ID(N'[dbo].[FK_sma_TRN_MassMailing_sma_MST_Templates]')
+			AND parent_object_id = OBJECT_ID(N'[dbo].[sma_TRN_MassMailing]')
+	)
+	ALTER TABLE [dbo].[sma_TRN_MassMailing] DROP CONSTRAINT [FK_sma_TRN_MassMailing_sma_MST_Templates]
 GO
 
-Truncate table sma_MST_Templates
+TRUNCATE TABLE sma_MST_Templates
 GO
 
-ALTER TABLE [dbo].[sma_TRN_MassMailing]  WITH CHECK ADD  CONSTRAINT [FK_sma_TRN_MassMailing_sma_MST_Templates] FOREIGN KEY([masmailTemplateID])
+ALTER TABLE [dbo].[sma_TRN_MassMailing] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_MassMailing_sma_MST_Templates] FOREIGN KEY ([masmailTemplateID])
 REFERENCES [dbo].[sma_MST_Templates] ([tmlnTemplateId])
 GO
 
@@ -85,41 +228,174 @@ GO
 
 
 INSERT INTO [dbo].[sma_MST_ScannedSubCategories]
-([sctgnCategoryID],[scanSubCategoryCode],[scanSubCategoryName],[scanRecUserID],[scanDtCreated],[scanModifyUserID],[scanDtModified]) 
-select d.sctgnCategoryID,upper(substring(c.DESCRIPTION,0,5)),substring(c.DESCRIPTION,0,50),368,getdate(),null,null
-From  [WilliamPagerSaga].dbo.DOCTEMPL a
-left join [WilliamPagerSaga].[dbo].[DOCTYPE] c on c.TYPEID=a.TYPEID
-left join [WilliamPagerSaga].dbo.DOCCAT b on a.CATEGORYID=b.CATEGORYID
-left join sma_MST_ScannedDocCategories d on sctgsCategoryName=substring(b.DESCRIPTION,0,50)
-left join [sma_MST_ScannedSubCategories] e on d.sctgnCategoryID=e.sctgnCategoryID and [scanSubCategoryName]=substring(c.DESCRIPTION,0,50)
-where not exists (select * from [sma_MST_ScannedSubCategories] f where e.scanSubCategoryID=f.scanSubCategoryID)
-and d.sctgnCategoryID is not null and isnull(substring(c.DESCRIPTION,0,50),'')<>''
+	(
+	[sctgnCategoryID]
+   ,[scanSubCategoryCode]
+   ,[scanSubCategoryName]
+   ,[scanRecUserID]
+   ,[scanDtCreated]
+   ,[scanModifyUserID]
+   ,[scanDtModified]
+	)
+	SELECT
+		d.sctgnCategoryID
+	   ,UPPER(SUBSTRING(c.DESCRIPTION, 0, 5))
+	   ,SUBSTRING(c.DESCRIPTION, 0, 50)
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.DOCTEMPL a
+	LEFT JOIN [WilliamPagerSaga].[dbo].[DOCTYPE] c
+		ON c.TYPEID = a.TYPEID
+	LEFT JOIN [WilliamPagerSaga].dbo.DOCCAT b
+		ON a.CATEGORYID = b.CATEGORYID
+	LEFT JOIN sma_MST_ScannedDocCategories d
+		ON sctgsCategoryName = SUBSTRING(b.DESCRIPTION, 0, 50)
+	LEFT JOIN [sma_MST_ScannedSubCategories] e
+		ON d.sctgnCategoryID = e.sctgnCategoryID
+			AND [scanSubCategoryName] = SUBSTRING(c.DESCRIPTION, 0, 50)
+	WHERE NOT EXISTS (
+			SELECT
+				*
+			FROM [sma_MST_ScannedSubCategories] f
+			WHERE e.scanSubCategoryID = f.scanSubCategoryID
+		)
+		AND d.sctgnCategoryID IS NOT NULL
+		AND ISNULL(SUBSTRING(c.DESCRIPTION, 0, 50), '') <> ''
 
-Alter table sma_mst_templates 
-alter column [tmlsTemplateName] varchar(250)
+ALTER TABLE sma_mst_templates
+ALTER COLUMN [tmlsTemplateName] VARCHAR(250)
 INSERT INTO [sma_MST_Templates]
-([tmlsTemplateName],[tmlsTemplateData],[tmlnCategoryID],[tmlnSubCategoryID],[tmldDtCreated],[tmlnRecUserId],[tmldDtModified]
-,[tmlnModifyUserId],[tmlnLevelNo],[tmpsmrgCodeID],[tmlnnCategoryID],[tmlnnSubCategoryID],[tmlnSubSubCategoryID],[tmlnSubSubSubCategoryID]
-,[tmlnIsMassMailing],[tmlnTemplateCaseGroup],[tmlnEnvelopeTemplateID],[tmlnIsArchived])
-     
-select a.DESCRIPTION,case when FRMFILE like '%.%' then replace(replace(FRMFILE,'.frm','.Doc'),'.wpd','.Doc') 
- else case when filename like '%.%' then left(FILENAME, charindex('.', FILENAME) - 1)+'.doc' else filename+'.doc' end  end,null,null,GETDATE(),368,null,null,'','',case when d.sctgnCategoryID is not null then d.sctgnCategoryID else 52 end,case when e.scanSubCategoryID is not null then e.scanSubCategoryID else 371 end,'','','','',null,'' 
-from [WilliamPagerSaga].dbo.DOCTEMPL a
-left join [WilliamPagerSaga].dbo.CMPNNTS z on z.DESCRIPTION=a.DESCRIPTION
-left join [WilliamPagerSaga].[dbo].[DOCTYPE] c on c.TYPEID=a.TYPEID
-left join [WilliamPagerSaga].dbo.DOCCAT b on a.CATEGORYID=b.CATEGORYID
-left join sma_MST_ScannedDocCategories d on sctgsCategoryName=substring(b.DESCRIPTION,0,50)
-left join [sma_MST_ScannedSubCategories] e on d.sctgnCategoryID=e.sctgnCategoryID and [scanSubCategoryName]=substring(c.DESCRIPTION,0,50)
-where case when FRMFILE is not null then replace(replace(FRMFILE,'.frm','.Doc'),'.wpd','.Doc') else replace(replace(replace(FILENAME,'.frm','.Doc'),'.wpd','.Doc'),'.do','.doc') end is not null
-go
+	(
+	[tmlsTemplateName]
+   ,[tmlsTemplateData]
+   ,[tmlnCategoryID]
+   ,[tmlnSubCategoryID]
+   ,[tmldDtCreated]
+   ,[tmlnRecUserId]
+   ,[tmldDtModified]
+   ,[tmlnModifyUserId]
+   ,[tmlnLevelNo]
+   ,[tmpsmrgCodeID]
+   ,[tmlnnCategoryID]
+   ,[tmlnnSubCategoryID]
+   ,[tmlnSubSubCategoryID]
+   ,[tmlnSubSubSubCategoryID]
+   ,[tmlnIsMassMailing]
+   ,[tmlnTemplateCaseGroup]
+   ,[tmlnEnvelopeTemplateID]
+   ,[tmlnIsArchived]
+	)
+
+	SELECT
+		a.DESCRIPTION
+	   ,CASE
+			WHEN FRMFILE LIKE '%.%'
+				THEN REPLACE(REPLACE(FRMFILE, '.frm', '.Doc'), '.wpd', '.Doc')
+			ELSE CASE
+					WHEN filename LIKE '%.%'
+						THEN LEFT(FILENAME, CHARINDEX('.', FILENAME) - 1) + '.doc'
+					ELSE filename + '.doc'
+				END
+		END
+	   ,NULL
+	   ,NULL
+	   ,GETDATE()
+	   ,368
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,''
+	   ,CASE
+			WHEN d.sctgnCategoryID IS NOT NULL
+				THEN d.sctgnCategoryID
+			ELSE 52
+		END
+	   ,CASE
+			WHEN e.scanSubCategoryID IS NOT NULL
+				THEN e.scanSubCategoryID
+			ELSE 371
+		END
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].dbo.DOCTEMPL a
+	LEFT JOIN [WilliamPagerSaga].dbo.CMPNNTS z
+		ON z.DESCRIPTION = a.DESCRIPTION
+	LEFT JOIN [WilliamPagerSaga].[dbo].[DOCTYPE] c
+		ON c.TYPEID = a.TYPEID
+	LEFT JOIN [WilliamPagerSaga].dbo.DOCCAT b
+		ON a.CATEGORYID = b.CATEGORYID
+	LEFT JOIN sma_MST_ScannedDocCategories d
+		ON sctgsCategoryName = SUBSTRING(b.DESCRIPTION, 0, 50)
+	LEFT JOIN [sma_MST_ScannedSubCategories] e
+		ON d.sctgnCategoryID = e.sctgnCategoryID
+			AND [scanSubCategoryName] = SUBSTRING(c.DESCRIPTION, 0, 50)
+	WHERE CASE
+			WHEN FRMFILE IS NOT NULL
+				THEN REPLACE(REPLACE(FRMFILE, '.frm', '.Doc'), '.wpd', '.Doc')
+			ELSE REPLACE(REPLACE(REPLACE(FILENAME, '.frm', '.Doc'), '.wpd', '.Doc'), '.do', '.doc')
+		END IS NOT NULL
+GO
 INSERT INTO [sma_MST_Templates]
-([tmlsTemplateName],[tmlsTemplateData],[tmlnCategoryID],[tmlnSubCategoryID],[tmldDtCreated],[tmlnRecUserId],[tmldDtModified]
-,[tmlnModifyUserId],[tmlnLevelNo],[tmpsmrgCodeID],[tmlnnCategoryID],[tmlnnSubCategoryID],[tmlnSubSubCategoryID],[tmlnSubSubSubCategoryID]
-,[tmlnIsMassMailing],[tmlnTemplateCaseGroup],[tmlnEnvelopeTemplateID],[tmlnIsArchived])
-     
-select DESCRIPTION,replace(replace(FRMFILE,'.frm','.Doc'),'.wpd','.Doc'),null,null,GETDATE(),368,null,null,'','',52,371,'','','','','','' from [WilliamPagerSaga].dbo.CMPNNTS
-where COMPONENTTYPEID=14 and not exists(select * from sma_mst_templates where tmlsTemplateName=DESCRIPTION)
-and not exists(select * from sma_mst_templates where convert(varchar(max),tmlsTemplateData)=replace(replace(FRMFILE,'.frm','.Doc'),'.wpd','.Doc'))
+	(
+	[tmlsTemplateName]
+   ,[tmlsTemplateData]
+   ,[tmlnCategoryID]
+   ,[tmlnSubCategoryID]
+   ,[tmldDtCreated]
+   ,[tmlnRecUserId]
+   ,[tmldDtModified]
+   ,[tmlnModifyUserId]
+   ,[tmlnLevelNo]
+   ,[tmpsmrgCodeID]
+   ,[tmlnnCategoryID]
+   ,[tmlnnSubCategoryID]
+   ,[tmlnSubSubCategoryID]
+   ,[tmlnSubSubSubCategoryID]
+   ,[tmlnIsMassMailing]
+   ,[tmlnTemplateCaseGroup]
+   ,[tmlnEnvelopeTemplateID]
+   ,[tmlnIsArchived]
+	)
+
+	SELECT
+		DESCRIPTION
+	   ,REPLACE(REPLACE(FRMFILE, '.frm', '.Doc'), '.wpd', '.Doc')
+	   ,NULL
+	   ,NULL
+	   ,GETDATE()
+	   ,368
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,''
+	   ,52
+	   ,371
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	FROM [WilliamPagerSaga].dbo.CMPNNTS
+	WHERE COMPONENTTYPEID = 14
+		AND NOT EXISTS (
+			SELECT
+				*
+			FROM sma_mst_templates
+			WHERE tmlsTemplateName = DESCRIPTION
+		)
+		AND NOT EXISTS (
+			SELECT
+				*
+			FROM sma_mst_templates
+			WHERE CONVERT(VARCHAR(MAX), tmlsTemplateData) = REPLACE(REPLACE(FRMFILE, '.frm', '.Doc'), '.wpd', '.Doc')
+		)
 
 
-go
+GO

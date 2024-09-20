@@ -1,51 +1,56 @@
+USE WilliamPagerSA
 
-sp_configure 'clr enabled', 1
+sp_configure 'clr enabled'
+			,1
 RECONFIGURE WITH OVERRIDE
-go
-alter table WilliamPagerSaga.dbo.WORK_HISTORY_MATTER disable trigger all
+GO
+ALTER TABLE WilliamPagerSaga.dbo.WORK_HISTORY_MATTER DISABLE TRIGGER ALL
 GO
 
 /****** Object:  Index [MATTER_MATTERNUMBER]    Script Date: 7/31/2014 10:33:22 PM ******/
 DROP INDEX [MATTER_MATTERNUMBER] ON [WilliamPagerSaga].[dbo].[MATTER]
 GO
 
-alter table WilliamPagerSaga.dbo.MATTER 
-alter column matternumber varchar(20) null
-go
+ALTER TABLE WilliamPagerSaga.dbo.MATTER
+ALTER COLUMN matternumber VARCHAR(20) NULL
+GO
 
 /****** Object:  Index [MATTER_MATTERNUMBER]    Script Date: 7/31/2014 10:33:22 PM ******/
 CREATE NONCLUSTERED INDEX [MATTER_MATTERNUMBER] ON [WilliamPagerSaga].[dbo].[MATTER]
 (
-	[MATTERNUMBER] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+[MATTERNUMBER] ASC
+) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 GO
 
 
-If not exists (select * from sys.assemblies where name='TextFunctions')
-Begin
---	CREATE ASSEMBLY TextFunctions FROM '\\rahul\shared\Rtf2Text.dll'
-	CREATE ASSEMBLY TextFunctions FROM 'E:\$My_Project_Notes\$WorkTools\Rtf2Text\Rtf2Text.dll'
-End
-If OBJECT_ID('dbo.RegExMatch') IS NOT NULL
-  DROP FUNCTION RegExMatch
-If OBJECT_ID('dbo.RegExReplace') IS NOT NULL
-  DROP FUNCTION RegExReplace  
+IF NOT EXISTS (
+		SELECT
+			*
+		FROM sys.assemblies
+		WHERE name = 'TextFunctions'
+	)
+BEGIN
+	--	CREATE ASSEMBLY TextFunctions FROM '\\rahul\shared\Rtf2Text.dll'
+	CREATE ASSEMBLY TextFunctions FROM 'D:\Saga-WilliamPager\Rtf2Text\Rtf2Text\Rtf2Text.dll'
+END
+IF OBJECT_ID('dbo.RegExMatch') IS NOT NULL
+	DROP FUNCTION RegExMatch
+IF OBJECT_ID('dbo.RegExReplace') IS NOT NULL
+	DROP FUNCTION RegExReplace
 GO
-CREATE FUNCTION RegExMatch( @Input NVARCHAR(max)
-,@Pattern NVARCHAR(127)
-)
+CREATE FUNCTION RegExMatch (@Input NVARCHAR(MAX)
+, @Pattern NVARCHAR(127))
 RETURNS BIT
 
-EXTERNAL NAME TextFunctions.RegularExpressions.RegExMatch
+	EXTERNAL NAME TextFunctions.RegularExpressions.RegExMatch
 GO
 
-CREATE FUNCTION RegExReplace( @Input NVARCHAR(max)
-,@Pattern NVARCHAR(127)
-,@Replacement NVARCHAR(max)
-)
-RETURNS NVARCHAR(max)
+CREATE FUNCTION RegExReplace (@Input NVARCHAR(MAX)
+, @Pattern NVARCHAR(127)
+, @Replacement NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
 
-EXTERNAL NAME TextFunctions.RegularExpressions.RegExReplace
+	EXTERNAL NAME TextFunctions.RegularExpressions.RegExReplace
 GO
 
 /*
@@ -85,4 +90,4 @@ DEALLOCATE samecasenumber_cursor
  Update WilliamPagerSaga.dbo.MATTER 
  set MATTERNUMBER=filenumber
 */
- alter table WilliamPagerSaga.dbo.WORK_HISTORY_MATTER enable trigger all
+ALTER TABLE WilliamPagerSaga.dbo.WORK_HISTORY_MATTER ENABLE TRIGGER ALL

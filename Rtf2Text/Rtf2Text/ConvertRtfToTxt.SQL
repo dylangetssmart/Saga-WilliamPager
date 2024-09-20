@@ -1,4 +1,3 @@
-USE WilliamPagerSA
 
 /*
 (1) Copy Rtf2Text.dll to J:\Rtf2Text.dll
@@ -7,18 +6,13 @@ USE WilliamPagerSA
 */
 
 --(2)--
-
-EXEC sp_configure 'clr strict security', 0;
-RECONFIGURE;
-GO
-
 sp_configure 'clr enabled', 1
 RECONFIGURE WITH OVERRIDE
 go
 
 If not exists (select * from sys.assemblies where name='TextFunctions')
 Begin
-                CREATE ASSEMBLY TextFunctions FROM 'D:\Saga-WilliamPager\Rtf2Text\Rtf2Text\Rtf2Text.dll'
+                CREATE ASSEMBLY TextFunctions FROM 'E:\$My_Project_Notes\$WorkTools\Rtf2Text\Rtf2Text.dll'
 End
 If OBJECT_ID('dbo.RegExMatch') IS NOT NULL
   DROP FUNCTION RegExMatch
@@ -43,17 +37,14 @@ EXTERNAL NAME TextFunctions.RegularExpressions.RegExReplace
 GO
 
 
-----(3)--
-/*
+--(3)--
 select 
     convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(e.notes,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
+       dbo.RegExReplace(MEMO,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
       ,'}','')
     
-      )),e.notes,
+      )),MEMO,
 
-    convert(varchar(max),ltrim(replace( dbo.RegExReplace(e.notes,'({\\)(.+?)(})|(\\)(.+?)(\b)','') ,'}','') ))
+    convert(varchar(max),ltrim(replace( dbo.RegExReplace(MEMO,'({\\)(.+?)(})|(\\)(.+?)(\b)','') ,'}','') ))
 
-from [WilliamPagerSaga].[dbo].[NOTE] e 
-*/
-
+from [blume].[dbo].[NOTES] N

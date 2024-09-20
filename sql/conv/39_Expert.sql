@@ -1,76 +1,305 @@
+USE WilliamPagerSA
+
 INSERT INTO [dbo].[sma_MST_ExpertType]
-([extsCode],[extsDscrptn],[extnRecUserID],[extdDtCreated],[extnModifyUserID],[extdDtModified],[extnLevelNo])
-Select UPPER(SUBSTRING(ltrim(rtrim(DESCRIPTION)),0,4)),ltrim(rtrim(DESCRIPTION)),368,getdate(),null,null,''
-From [WilliamPagerSaga].dbo.LW_A_EXPERTTYPE where ltrim(rtrim(DESCRIPTION)) not in (select ltrim(rtrim(extsDscrptn)) from sma_MST_ExpertType)
-go
+	(
+	[extsCode]
+   ,[extsDscrptn]
+   ,[extnRecUserID]
+   ,[extdDtCreated]
+   ,[extnModifyUserID]
+   ,[extdDtModified]
+   ,[extnLevelNo]
+	)
+	SELECT
+		UPPER(SUBSTRING(LTRIM(RTRIM(DESCRIPTION)), 0, 4))
+	   ,LTRIM(RTRIM(DESCRIPTION))
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].dbo.LW_A_EXPERTTYPE
+	WHERE LTRIM(RTRIM(DESCRIPTION)) NOT IN (
+			SELECT
+				LTRIM(RTRIM(extsDscrptn))
+			FROM sma_MST_ExpertType
+		)
+GO
 INSERT INTO [dbo].[sma_MST_Speciality]
-([splsCode],[splnContactTypeID],[splsSpeciality],[splsSubspeciality],[splnRecUserID],[spldDtCreated],[splnModifyUserID],[spldDtModified],[splnLevelNo])
-Select UPPER(SUBSTRING(ltrim(rtrim(DESCRIPTION)),0,4)),23,ltrim(rtrim(DESCRIPTION)),null,368,getdate(),null,null,'' from 
-[WilliamPagerSaga].dbo.LW_A_SPECIALTY where ltrim(rtrim(DESCRIPTION)) not in (select ltrim(rtrim([splsSpeciality])) from sma_MST_Speciality)
-go
+	(
+	[splsCode]
+   ,[splnContactTypeID]
+   ,[splsSpeciality]
+   ,[splsSubspeciality]
+   ,[splnRecUserID]
+   ,[spldDtCreated]
+   ,[splnModifyUserID]
+   ,[spldDtModified]
+   ,[splnLevelNo]
+	)
+	SELECT
+		UPPER(SUBSTRING(LTRIM(RTRIM(DESCRIPTION)), 0, 4))
+	   ,23
+	   ,LTRIM(RTRIM(DESCRIPTION))
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].dbo.LW_A_SPECIALTY
+	WHERE LTRIM(RTRIM(DESCRIPTION)) NOT IN (
+			SELECT
+				LTRIM(RTRIM([splsSpeciality]))
+			FROM sma_MST_Speciality
+		)
+GO
 
-insert into sma_TRN_ExpertContacts  
-(ectnCaseID, ectnexpContactID,ectnExpAddressID, ectnExpertFor,ectnExpertTypeID,ectnWillTestifyYN,ectnDisclosureReqd,ectdDisclosureDt,  
-  ectnSpeciality,ectnSubspeciality,ectdRetDte,ectsRetainerDoc,ectnRetainerPaid,ectsComment,ectbDocAttached,ectnRecUserID ,ectdDtCreated, ectnLevelNo)  
-select distinct casnCaseID,case when i1.cinnContactID is not null then i1.cinnContactID when o1.connContactID is not null then o1.connContactID  end,
-case when i1.cinnContactID is not null then ad2.addnAddressID when o1.connContactID is not null then ad1.addnAddressID  end,case when asg.PARTYTYPE=2 then 1 when asg.PARTYTYPE=1 then 0 end,extnExpertTypeID,
-Case when ISTESTIFY='T' then 1 else 0 end,null,null,
-splnSpecialityID,null,null,null,'0.00',case when REPORTDATE is not null then 'Report Date: '+convert(varchar,REPORTDATE)+char(13) end + case when DATEREVIEWED is not null then 'Date Reviewed: '+convert(varchar,DATEREVIEWED)+char(13) end +isnull(convert(varchar(max),n.NOTES),''),null,null,null,''
-from [WilliamPagerSaga].dbo.LW_EXPERT a
-left join [WilliamPagerSaga].dbo.LW_A_EXPERTTYPE b on a.EXPERTTYPEID=b.EXPERTTYPEID
-left join [sma_MST_ExpertType] on ltrim(rtrim(DESCRIPTION))=ltrim(rtrim(extsDscrptn))
-LEFT JOIN [WilliamPagerSaga].dbo.matrelt mat on  mat.matreltid=a.matreltid 
-LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN asg on asg.ASSIGNID=mat.ASSIGNID
-LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN expe  on mat.RELATEDASSIGNID=expe.assignID
-LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e1 on e1.ENTITYID=asg.ENTITYID
-LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e2 on e2.ENTITYID=expe.ENTITYID
-LEFT JOIN [WilliamPagerSaga].dbo.EROLE r1 on r1.ROLEID=asg.ROLEID
-LEFT JOIN [WilliamPagerSaga].dbo.EROLE r2 on r2.ROLEID=expe.ROLEID
-LEFT JOIN [WilliamPagerSaga].dbo.matter m on m.matterid=expe.matterid
-left join sma_trn_cases on cassCaseNumber=MATTERNUMBER
-left join sma_MST_IndvContacts i1 on i1.cinsGrade=e2.ENTITYID
-left join sma_mst_orgcontacts o1 on o1.connLevelNo=e2.ENTITYID 
-Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=o1.connContactID and addbPrimary=1 and addnContactCtgID=2) ad1
-Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=i1.cinnContactID and addbPrimary=1 and addnContactCtgID=1) ad2
-left join [WilliamPagerSaga].dbo.LW_A_SPECIALTY s1 on s1.SPECIALTYID=a.SPECIALTYID
-left join sma_MST_Speciality on  ltrim(rtrim([splsSpeciality])) =  ltrim(rtrim(s1.DESCRIPTION))
-left join [WilliamPagerSaga].dbo.NOTE n on n.NOTEID=mat.NOTEID
-where casnCaseID is not null 
-go
-Update sma_TRN_ExpertContacts
-set ectsComment=convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(ectsComment,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')     
-      )) 
-go
+INSERT INTO sma_TRN_ExpertContacts
+	(
+	ectnCaseID
+   ,ectnexpContactID
+   ,ectnExpAddressID
+   ,ectnExpertFor
+   ,ectnExpertTypeID
+   ,ectnWillTestifyYN
+   ,ectnDisclosureReqd
+   ,ectdDisclosureDt
+   ,ectnSpeciality
+   ,ectnSubspeciality
+   ,ectdRetDte
+   ,ectsRetainerDoc
+   ,ectnRetainerPaid
+   ,ectsComment
+   ,ectbDocAttached
+   ,ectnRecUserID
+   ,ectdDtCreated
+   ,ectnLevelNo
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,CASE
+			WHEN i1.cinnContactID IS NOT NULL
+				THEN i1.cinnContactID
+			WHEN o1.connContactID IS NOT NULL
+				THEN o1.connContactID
+		END
+	   ,CASE
+			WHEN i1.cinnContactID IS NOT NULL
+				THEN ad2.addnAddressID
+			WHEN o1.connContactID IS NOT NULL
+				THEN ad1.addnAddressID
+		END
+	   ,CASE
+			WHEN asg.PARTYTYPE = 2
+				THEN 1
+			WHEN asg.PARTYTYPE = 1
+				THEN 0
+		END
+	   ,extnExpertTypeID
+	   ,CASE
+			WHEN ISTESTIFY = 'T'
+				THEN 1
+			ELSE 0
+		END
+	   ,NULL
+	   ,NULL
+	   ,splnSpecialityID
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,'0.00'
+	   ,CASE
+			WHEN REPORTDATE IS NOT NULL
+				THEN 'Report Date: ' + CONVERT(VARCHAR, REPORTDATE) + CHAR(13)
+		END +
+		CASE
+			WHEN DATEREVIEWED IS NOT NULL
+				THEN 'Date Reviewed: ' + CONVERT(VARCHAR, DATEREVIEWED) + CHAR(13)
+		END + ISNULL(CONVERT(VARCHAR(MAX), n.NOTES), '')
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].dbo.LW_EXPERT a
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_EXPERTTYPE b
+		ON a.EXPERTTYPEID = b.EXPERTTYPEID
+	LEFT JOIN [sma_MST_ExpertType]
+		ON LTRIM(RTRIM(DESCRIPTION)) = LTRIM(RTRIM(extsDscrptn))
+	LEFT JOIN [WilliamPagerSaga].dbo.matrelt mat
+		ON mat.matreltid = a.matreltid
+	LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN asg
+		ON asg.ASSIGNID = mat.ASSIGNID
+	LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN expe
+		ON mat.RELATEDASSIGNID = expe.assignID
+	LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e1
+		ON e1.ENTITYID = asg.ENTITYID
+	LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e2
+		ON e2.ENTITYID = expe.ENTITYID
+	LEFT JOIN [WilliamPagerSaga].dbo.EROLE r1
+		ON r1.ROLEID = asg.ROLEID
+	LEFT JOIN [WilliamPagerSaga].dbo.EROLE r2
+		ON r2.ROLEID = expe.ROLEID
+	LEFT JOIN [WilliamPagerSaga].dbo.matter m
+		ON m.matterid = expe.matterid
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON i1.cinsGrade = e2.ENTITYID
+	LEFT JOIN sma_mst_orgcontacts o1
+		ON o1.connLevelNo = e2.ENTITYID
+	OUTER APPLY (
+		SELECT TOP 1
+			addnAddressID
+		FROM sma_MST_Address
+		WHERE addnContactID = o1.connContactID
+			AND addbPrimary = 1
+			AND addnContactCtgID = 2
+	) ad1
+	OUTER APPLY (
+		SELECT TOP 1
+			addnAddressID
+		FROM sma_MST_Address
+		WHERE addnContactID = i1.cinnContactID
+			AND addbPrimary = 1
+			AND addnContactCtgID = 1
+	) ad2
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_SPECIALTY s1
+		ON s1.SPECIALTYID = a.SPECIALTYID
+	LEFT JOIN sma_MST_Speciality
+		ON LTRIM(RTRIM([splsSpeciality])) = LTRIM(RTRIM(s1.DESCRIPTION))
+	LEFT JOIN [WilliamPagerSaga].dbo.NOTE n
+		ON n.NOTEID = mat.NOTEID
+	WHERE casnCaseID IS NOT NULL
+GO
+UPDATE sma_TRN_ExpertContacts
+SET ectsComment = CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
+dbo.RegExReplace(ectsComment, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+, '}', '')
+))
+GO
 
-Insert Into [sma_mst_SubRoleCode]
-select distinct [DESCRIPTION],5 
-FROM [WilliamPagerSaga].[dbo].[LW_A_WITNESSTYPE] where [DESCRIPTION] not in (select [srcsDscrptn] from [sma_mst_SubRoleCode] where srcnroleid=5)
-go
- INSERT INTO sma_TRN_CaseWitness
-(witnCaseID,witnWitnesContactID,witnWitnesAdID,witnRoleID,witnFavorable,witnTestify,witdStmtReqDate,witdStmtDate,witbHasRec,witsDoc,witsComment,witnRecUserID,witdDtCreated,witnLevelNo)
-Select casncaseid,case when i1.cinncontactid is not null then '1'+cast(i1.cinncontactid as varchar(20)) when o1.conncontactid is not null then '2'+cast(o1.conncontactid as varchar(20)) end,
-case when i1.cinncontactid is not null then ad1.addnAddressID when o1.conncontactid is not null then ad2.addnAddressID end,[srcnCodeId],null,case when [ISTESTIFY]='T' then 2 when [ISTESTIFY]='F' then 3 else null end,
-case when report_requested between '1/1/1900' and '12/31/2079' then report_requested else null end,null,null,null,isnull('REPORT DATE: '+convert(varchar(100),ReportDate),'')
-+isnull(char(13)+'DATE REVIEWED: '+convert(varchar(100),[DATEREVIEWED]),'')
-+isnull(char(13)+'REPORT RECEIVED: '+[REPORTRECEIVED],''),368,getdate(),''
-FROM [WilliamPagerSaga].[dbo].[LW_WITNESS] w
-Left join  [WilliamPagerSaga].[dbo].[Assign] a on w.assignid=a.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join sma_trn_cases on casscasenumber=matternumber
-left join sma_mst_indvcontacts i1 on i1.cinsgrade=a.entityid
-left join sma_mst_orgcontacts o1 on o1.connlevelno=a.entityid
-Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=i1.cinnContactID and addbPrimary=1 and addnContactCtgID=1) ad1
-Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=o1.connContactID and addbPrimary=1 and addnContactCtgID=2) ad2
-left join [WilliamPagerSaga].[dbo].[LW_A_WITNESSTYPE] wt on wt.[WITNESSTYPEID]=w.[WITNESSTYPEID]
-Outer apply(Select top 1 [srcnCodeId] from [sma_mst_SubRoleCode] where [srcsDscrptn]=wt.[DESCRIPTION] and srcnroleid=5) typ
-go
-alter table sma_TRN_CriticalComments disable trigger all
-insert into sma_TRN_CriticalComments
-select distinct caseid,0,comments,1,RecUserID,DtCreated,null,null,1,'RET' from sma_TRN_Incidents where isnull(comments,'')<>''
-alter table sma_TRN_CriticalComments enable trigger all
-go
-update [sma_MST_CaseType]
-set [cstbUseIncident1]=1,[cstsIncidentLabel1]='Incident'
-go
+INSERT INTO [sma_mst_SubRoleCode]
+	SELECT DISTINCT
+		[DESCRIPTION]
+	   ,5
+	FROM [WilliamPagerSaga].[dbo].[LW_A_WITNESSTYPE]
+	WHERE [DESCRIPTION] NOT IN (
+			SELECT
+				[srcsDscrptn]
+			FROM [sma_mst_SubRoleCode]
+			WHERE srcnroleid = 5
+		)
+GO
+INSERT INTO sma_TRN_CaseWitness
+	(
+	witnCaseID
+   ,witnWitnesContactID
+   ,witnWitnesAdID
+   ,witnRoleID
+   ,witnFavorable
+   ,witnTestify
+   ,witdStmtReqDate
+   ,witdStmtDate
+   ,witbHasRec
+   ,witsDoc
+   ,witsComment
+   ,witnRecUserID
+   ,witdDtCreated
+   ,witnLevelNo
+	)
+	SELECT
+		casncaseid
+	   ,CASE
+			WHEN i1.cinncontactid IS NOT NULL
+				THEN '1' + CAST(i1.cinncontactid AS VARCHAR(20))
+			WHEN o1.conncontactid IS NOT NULL
+				THEN '2' + CAST(o1.conncontactid AS VARCHAR(20))
+		END
+	   ,CASE
+			WHEN i1.cinncontactid IS NOT NULL
+				THEN ad1.addnAddressID
+			WHEN o1.conncontactid IS NOT NULL
+				THEN ad2.addnAddressID
+		END
+	   ,[srcnCodeId]
+	   ,NULL
+	   ,CASE
+			WHEN [ISTESTIFY] = 'T'
+				THEN 2
+			WHEN [ISTESTIFY] = 'F'
+				THEN 3
+			ELSE NULL
+		END
+	   ,CASE
+			WHEN report_requested BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN report_requested
+			ELSE NULL
+		END
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,ISNULL('REPORT DATE: ' + CONVERT(VARCHAR(100), ReportDate), '')
+		+ ISNULL(CHAR(13) + 'DATE REVIEWED: ' + CONVERT(VARCHAR(100), [DATEREVIEWED]), '')
+		+ ISNULL(CHAR(13) + 'REPORT RECEIVED: ' + [REPORTRECEIVED], '')
+	   ,368
+	   ,GETDATE()
+	   ,''
+	FROM [WilliamPagerSaga].[dbo].[LW_WITNESS] w
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+		ON w.assignid = a.assignid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+		ON m.matterid = a.matterid
+	LEFT JOIN sma_trn_cases
+		ON casscasenumber = matternumber
+	LEFT JOIN sma_mst_indvcontacts i1
+		ON i1.cinsgrade = a.entityid
+	LEFT JOIN sma_mst_orgcontacts o1
+		ON o1.connlevelno = a.entityid
+	OUTER APPLY (
+		SELECT TOP 1
+			addnAddressID
+		FROM sma_MST_Address
+		WHERE addnContactID = i1.cinnContactID
+			AND addbPrimary = 1
+			AND addnContactCtgID = 1
+	) ad1
+	OUTER APPLY (
+		SELECT TOP 1
+			addnAddressID
+		FROM sma_MST_Address
+		WHERE addnContactID = o1.connContactID
+			AND addbPrimary = 1
+			AND addnContactCtgID = 2
+	) ad2
+	LEFT JOIN [WilliamPagerSaga].[dbo].[LW_A_WITNESSTYPE] wt
+		ON wt.[WITNESSTYPEID] = w.[WITNESSTYPEID]
+	OUTER APPLY (
+		SELECT TOP 1
+			[srcnCodeId]
+		FROM [sma_mst_SubRoleCode]
+		WHERE [srcsDscrptn] = wt.[DESCRIPTION]
+			AND srcnroleid = 5
+	) typ
+GO
+ALTER TABLE sma_TRN_CriticalComments DISABLE TRIGGER ALL
+INSERT INTO sma_TRN_CriticalComments
+	SELECT DISTINCT
+		caseid
+	   ,0
+	   ,comments
+	   ,1
+	   ,RecUserID
+	   ,DtCreated
+	   ,NULL
+	   ,NULL
+	   ,1
+	   ,'RET'
+	FROM sma_TRN_Incidents
+	WHERE ISNULL(comments, '') <> ''
+ALTER TABLE sma_TRN_CriticalComments ENABLE TRIGGER ALL
+GO
+UPDATE [sma_MST_CaseType]
+SET [cstbUseIncident1] = 1
+   ,[cstsIncidentLabel1] = 'Incident'
+GO

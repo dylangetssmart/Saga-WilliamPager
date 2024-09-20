@@ -1,3 +1,5 @@
+USE WilliamPagerSA
+
 INSERT INTO [sma_TRN_Retainer]
 ([rtnnCaseID],[rtnnPlaintiffID],[rtndSentDt],[rtndRcvdDt],[rtndRetainerDt],[rtnbCopyRefAttFee],[rtnnFeeStru],[rtnbMultiFeeStru],[rtnnBeforeTrial],[rtnnAfterTrial],[rtnnAtAppeal],[rtnnUDF1],[rtnnUDF2],
 [rtnnUDF3],[rtnbComplexStru],[rtnbWrittenAgree],[rtnnStaffID],[rtnsComments],[rtnnUserID],[rtndDtCreated],[rtnnModifyUserID],[rtndDtModified],[rtnnLevelNo],[rtnnPlntfAdv],[rtnnFeeAmt],[rtnsRetNo],rtndClosingStmtSent,rtnsClosingRetNo)

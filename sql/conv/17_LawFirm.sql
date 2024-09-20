@@ -1,64 +1,236 @@
-alter table [sma_MST_AttorneyTypes]
-alter column atnsAtorneyDscrptn varchar(500) null
+USE WilliamPagerSA
 
-Alter Table sma_trn_lawfirms disable trigger all
+ALTER TABLE [sma_MST_AttorneyTypes]
+ALTER COLUMN atnsAtorneyDscrptn VARCHAR(500) NULL
+
+ALTER TABLE sma_trn_lawfirms DISABLE TRIGGER ALL
 
 INSERT INTO [sma_MST_AttorneyTypes]
-([atnsAtorneyCode],[atnsAtorneyDscrptn],[atnnRecUserID],[atndDtCreated],[atnnModifyUserID],[atndDtModified],[atnnLevelNo])
-Select '',DESCRIPTION,368,GETDATE(),null,null,null from  [WilliamPagerSaga].dbo.EROLE where DESCRIPTION like '%attorney%' and DESCRIPTION not like 'primary%' and DESCRIPTION not like 'secondary%' and DESCRIPTION not like 'managing%'
+	(
+	[atnsAtorneyCode]
+   ,[atnsAtorneyDscrptn]
+   ,[atnnRecUserID]
+   ,[atndDtCreated]
+   ,[atnnModifyUserID]
+   ,[atndDtModified]
+   ,[atnnLevelNo]
+	)
+	SELECT
+		''
+	   ,DESCRIPTION
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.EROLE
+	WHERE DESCRIPTION LIKE '%attorney%'
+		AND DESCRIPTION NOT LIKE 'primary%'
+		AND DESCRIPTION NOT LIKE 'secondary%'
+		AND DESCRIPTION NOT LIKE 'managing%'
 
-go
+GO
 INSERT INTO [sma_TRN_LawFirms]
-([lwfnLawFirmContactID],[lwfnLawFirmAddressID],[lwfnAttorneyContactID],[lwfnAttorneyAddressID],[lwfnAttorneyTypeID],[lwfsFileNumber],[lwfnRoleType],[lwfnContactID]
-,[lwfnRecUserID],[lwfdDtCreated],[lwfnModifyUserID],[lwfdDtModified],[lwfnLevelNo],[lwfnAdjusterID])
-select distinct o1.connContactID,ad1.addnAddressID,attorney.cinnContactID,ad2.addnAddressID,atnnAtorneyTypeID,substring(f.FILENUMBER,0,30),2,case when d1.defnDefendentID IS NOT NULL then d1.defnDefendentID when d2.defnDefendentID IS NOT NULL then d2.defnDefendentID end,368,GETDATE(),null,null,null,null 
-from  WilliamPagerSaga.dbo.LW_FIRM f  
- left join WilliamPagerSaga.dbo.matrelt mat on f.MATRELTID=mat.MATRELTID
- left join WilliamPagerSaga.dbo.assign aatty on f.ATTORNEYASSIGNID=aatty.ASSIGNID 
- left join WilliamPagerSaga.dbo.entities eatty on aatty.entityid=eatty.entityid 
- left join sma_MST_IndvContacts attorney on attorney.cinsGrade=eatty.ENTITYID
- Left join WilliamPagerSaga.dbo.assign acomp on acomp.assignid=mat.RELATEDASSIGNID 
- left join WilliamPagerSaga.dbo.matter m on acomp.matterid=m.matterid 
- left join WilliamPagerSaga.dbo.entities ecomp on acomp.entityid=ecomp.entityid 
- left join WilliamPagerSaga.dbo.erole r on r.roleid=aatty.roleid 
- left join WilliamPagerSaga.dbo.assign aparty on aparty.assignid=mat.ASSIGNID and aparty.partytype=2  
- left join WilliamPagerSaga.dbo.entities eparty on eparty.entityid=aparty.entityid  
-left join WilliamPagerSaga.dbo.ADDRESS ad on ad.ADDRESSID=ecomp.PRIMARYADDR
-Left Join sma_MST_AttorneyTypes on r.DESCRIPTION=atnsAtorneyDscrptn
-Left Join sma_TRN_CaseS on cassCaseNumber=m.MATTERNUMBER
-left join sma_MST_IndvContacts i1 on i1.cinsGrade=acomp.ENTITYID
-left join sma_mst_orgcontacts o1 on o1.connLevelNo=acomp.ENTITYID
-left join sma_MST_IndvContacts i2 on i2.cinsGrade=aparty.ENTITYID
-left join sma_mst_orgcontacts o2 on o2.connLevelNo=aparty.ENTITYID
-left join sma_TRN_Defendants d1 on d1.defnContactCtgID=1 and d1.defnContactID=i2.cinnContactID  and d1.defnCaseID=casnCaseID
-left join sma_TRN_Defendants d2 on d2.defnContactCtgID=2 and d2.defnContactID=o2.connContactID  and d2.defnCaseID=casnCaseID
-left join sma_MST_Address ad1 on ad1.addnContactID=o1.connContactID and ad1.addbPrimary=1 and ad1.addsCity=ad.ADDRCITY and ad1.addsAddress1=ad.ADDRLINE1 and ad1.addnContactCtgID=2
-left join sma_MST_Address ad2 on ad2.addnContactID=attorney.cinnContactID and ad2.addbPrimary=1 and ad2.addnContactCtgID=1
---Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=connContactID and addnContactCtgID=2 and addbPrimary=1 ) ad1
---Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=connContactID and addnContactCtgID=2 and addbPrimary=1) ad2
-where casnCaseID is not null --and connContactID is not null--and aparty.ROLEID in (Select ROLEID from   [WilliamPagerSaga].dbo.EROLE where DESCRIPTION like '%defe%') and LawFrimContactID is not null
-and (attorney.cinnContactID is not null or o1.connContactID is not null)
-go
+	(
+	[lwfnLawFirmContactID]
+   ,[lwfnLawFirmAddressID]
+   ,[lwfnAttorneyContactID]
+   ,[lwfnAttorneyAddressID]
+   ,[lwfnAttorneyTypeID]
+   ,[lwfsFileNumber]
+   ,[lwfnRoleType]
+   ,[lwfnContactID]
+   ,[lwfnRecUserID]
+   ,[lwfdDtCreated]
+   ,[lwfnModifyUserID]
+   ,[lwfdDtModified]
+   ,[lwfnLevelNo]
+   ,[lwfnAdjusterID]
+	)
+	SELECT DISTINCT
+		o1.connContactID
+	   ,ad1.addnAddressID
+	   ,attorney.cinnContactID
+	   ,ad2.addnAddressID
+	   ,atnnAtorneyTypeID
+	   ,SUBSTRING(f.FILENUMBER, 0, 30)
+	   ,2
+	   ,CASE
+			WHEN d1.defnDefendentID IS NOT NULL
+				THEN d1.defnDefendentID
+			WHEN d2.defnDefendentID IS NOT NULL
+				THEN d2.defnDefendentID
+		END
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM WilliamPagerSaga.dbo.LW_FIRM f
+	LEFT JOIN WilliamPagerSaga.dbo.matrelt mat
+		ON f.MATRELTID = mat.MATRELTID
+	LEFT JOIN WilliamPagerSaga.dbo.assign aatty
+		ON f.ATTORNEYASSIGNID = aatty.ASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.entities eatty
+		ON aatty.entityid = eatty.entityid
+	LEFT JOIN sma_MST_IndvContacts attorney
+		ON attorney.cinsGrade = eatty.ENTITYID
+	LEFT JOIN WilliamPagerSaga.dbo.assign acomp
+		ON acomp.assignid = mat.RELATEDASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.matter m
+		ON acomp.matterid = m.matterid
+	LEFT JOIN WilliamPagerSaga.dbo.entities ecomp
+		ON acomp.entityid = ecomp.entityid
+	LEFT JOIN WilliamPagerSaga.dbo.erole r
+		ON r.roleid = aatty.roleid
+	LEFT JOIN WilliamPagerSaga.dbo.assign aparty
+		ON aparty.assignid = mat.ASSIGNID
+			AND aparty.partytype = 2
+	LEFT JOIN WilliamPagerSaga.dbo.entities eparty
+		ON eparty.entityid = aparty.entityid
+	LEFT JOIN WilliamPagerSaga.dbo.ADDRESS ad
+		ON ad.ADDRESSID = ecomp.PRIMARYADDR
+	LEFT JOIN sma_MST_AttorneyTypes
+		ON r.DESCRIPTION = atnsAtorneyDscrptn
+	LEFT JOIN sma_TRN_CaseS
+		ON cassCaseNumber = m.MATTERNUMBER
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON i1.cinsGrade = acomp.ENTITYID
+	LEFT JOIN sma_mst_orgcontacts o1
+		ON o1.connLevelNo = acomp.ENTITYID
+	LEFT JOIN sma_MST_IndvContacts i2
+		ON i2.cinsGrade = aparty.ENTITYID
+	LEFT JOIN sma_mst_orgcontacts o2
+		ON o2.connLevelNo = aparty.ENTITYID
+	LEFT JOIN sma_TRN_Defendants d1
+		ON d1.defnContactCtgID = 1
+			AND d1.defnContactID = i2.cinnContactID
+			AND d1.defnCaseID = casnCaseID
+	LEFT JOIN sma_TRN_Defendants d2
+		ON d2.defnContactCtgID = 2
+			AND d2.defnContactID = o2.connContactID
+			AND d2.defnCaseID = casnCaseID
+	LEFT JOIN sma_MST_Address ad1
+		ON ad1.addnContactID = o1.connContactID
+			AND ad1.addbPrimary = 1
+			AND ad1.addsCity = ad.ADDRCITY
+			AND ad1.addsAddress1 = ad.ADDRLINE1
+			AND ad1.addnContactCtgID = 2
+	LEFT JOIN sma_MST_Address ad2
+		ON ad2.addnContactID = attorney.cinnContactID
+			AND ad2.addbPrimary = 1
+			AND ad2.addnContactCtgID = 1
+	--Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=connContactID and addnContactCtgID=2 and addbPrimary=1 ) ad1
+	--Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=connContactID and addnContactCtgID=2 and addbPrimary=1) ad2
+	WHERE casnCaseID IS NOT NULL --and connContactID is not null--and aparty.ROLEID in (Select ROLEID from   [WilliamPagerSaga].dbo.EROLE where DESCRIPTION like '%defe%') and LawFrimContactID is not null
+		AND (attorney.cinnContactID IS NOT NULL
+		OR o1.connContactID IS NOT NULL)
+GO
 --drop table #lwfrmEntity
 
 INSERT INTO [sma_TRN_PlaintiffAttorney]
-([planPlaintffID],[planCaseID],[planPlCtgID],[planPlContactID],[planLawfrmAddID],[planLawfrmContactID],[planAtorneyAddID],[planAtorneyContactID]
-,[planAtnTypeID],[plasFileNo],[planRecUserID],[pladDtCreated],[planModifyUserID],[pladDtModified],[planLevelNo],[planRefOutID])
-select plnnPlaintiffID,plnnCaseID,plnnContactCtg,plnnContactID,ad1.addnAddressID,LawFrimContactID,null,null,
-atnnAtorneyTypeID,lw.FILENUMBER,368,GETDATE(),null,null,null,null
-from [WilliamPagerSaga].dbo.lw_firm lw
-left join [WilliamPagerSaga].dbo.matrelt ml on ml.MATRELTID=lw.MATRELTID
-left join [WilliamPagerSaga].dbo.ASSIGN afirm on ml.relatedASSIGNID=afirm.ASSIGNID
-left join [WilliamPagerSaga].dbo.MATTER m on afirm.matterid=m.matterid
-left join [WilliamPagerSaga].dbo.EROLE r on  r.ROLEID=afirm.ROLEID
-left join [WilliamPagerSaga].dbo.assign aparty on ml.assignid=aparty.assignid 
-Left Join sma_MST_AttorneyTypes on r.DESCRIPTION=atnsAtorneyDscrptn
-Left Join sma_TRN_CaseS on cassCaseNumber=m.FILENUMBER
-Outer Apply (select top 1  case when cinnContactCtg IS not null then 1 when connContactCtg IS not null then 2 end as ContactCtg, case when cinnContactID IS not null then cinnContactID when connContactID IS not null then connContactID end as ContactID  from [WilliamPagerSaga].dbo.entities en LEFT JOIN sma_MST_IndvContacts l on l.cinsGrade=en.ENTITYID LEFT JOIN sma_MST_OrgContacts k on k.connLevelNo=en.ENTITYID where en.entityid=aparty.entityid) Party
-left join sma_TRN_Plaintiff on plnnCaseID=casnCaseID and plnnContactID=ContactID and plnnContactCtg=ContactCtg
-OUTER APPLY (select top 1 case when connContactID IS not null then connContactID end as LawFrimContactID from [WilliamPagerSaga].dbo.entities efirm LEFT JOIN sma_MST_OrgContacts k on k.connLevelNo=efirm.ENTITYID where afirm.ENTITYID=efirm.ENTITYID)efrim
-Outer apply(Select top 1 addnAddressID from sma_MST_Address where addnContactID=LawFrimContactID and addbPrimary=1 and addnContactCtgID=2) ad1
-where plnnCaseID is not null and aparty.ROLEID in (Select ROLEID from   [WilliamPagerSaga].dbo.EROLE where DESCRIPTION like '%plain%')   
-    
-Alter Table sma_trn_lawfirms Enable trigger all
-go
+	(
+	[planPlaintffID]
+   ,[planCaseID]
+   ,[planPlCtgID]
+   ,[planPlContactID]
+   ,[planLawfrmAddID]
+   ,[planLawfrmContactID]
+   ,[planAtorneyAddID]
+   ,[planAtorneyContactID]
+   ,[planAtnTypeID]
+   ,[plasFileNo]
+   ,[planRecUserID]
+   ,[pladDtCreated]
+   ,[planModifyUserID]
+   ,[pladDtModified]
+   ,[planLevelNo]
+   ,[planRefOutID]
+	)
+	SELECT
+		plnnPlaintiffID
+	   ,plnnCaseID
+	   ,plnnContactCtg
+	   ,plnnContactID
+	   ,ad1.addnAddressID
+	   ,LawFrimContactID
+	   ,NULL
+	   ,NULL
+	   ,atnnAtorneyTypeID
+	   ,lw.FILENUMBER
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.lw_firm lw
+	LEFT JOIN [WilliamPagerSaga].dbo.matrelt ml
+		ON ml.MATRELTID = lw.MATRELTID
+	LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN afirm
+		ON ml.relatedASSIGNID = afirm.ASSIGNID
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER m
+		ON afirm.matterid = m.matterid
+	LEFT JOIN [WilliamPagerSaga].dbo.EROLE r
+		ON r.ROLEID = afirm.ROLEID
+	LEFT JOIN [WilliamPagerSaga].dbo.assign aparty
+		ON ml.assignid = aparty.assignid
+	LEFT JOIN sma_MST_AttorneyTypes
+		ON r.DESCRIPTION = atnsAtorneyDscrptn
+	LEFT JOIN sma_TRN_CaseS
+		ON cassCaseNumber = m.FILENUMBER
+	OUTER APPLY (
+		SELECT TOP 1
+			CASE
+				WHEN cinnContactCtg IS NOT NULL
+					THEN 1
+				WHEN connContactCtg IS NOT NULL
+					THEN 2
+			END AS ContactCtg
+		   ,CASE
+				WHEN cinnContactID IS NOT NULL
+					THEN cinnContactID
+				WHEN connContactID IS NOT NULL
+					THEN connContactID
+			END AS ContactID
+		FROM [WilliamPagerSaga].dbo.entities en
+		LEFT JOIN sma_MST_IndvContacts l
+			ON l.cinsGrade = en.ENTITYID
+		LEFT JOIN sma_MST_OrgContacts k
+			ON k.connLevelNo = en.ENTITYID
+		WHERE en.entityid = aparty.entityid
+	) Party
+	LEFT JOIN sma_TRN_Plaintiff
+		ON plnnCaseID = casnCaseID
+			AND plnnContactID = ContactID
+			AND plnnContactCtg = ContactCtg
+	OUTER APPLY (
+		SELECT TOP 1
+			CASE
+				WHEN connContactID IS NOT NULL
+					THEN connContactID
+			END AS LawFrimContactID
+		FROM [WilliamPagerSaga].dbo.entities efirm
+		LEFT JOIN sma_MST_OrgContacts k
+			ON k.connLevelNo = efirm.ENTITYID
+		WHERE afirm.ENTITYID = efirm.ENTITYID
+	) efrim
+	OUTER APPLY (
+		SELECT TOP 1
+			addnAddressID
+		FROM sma_MST_Address
+		WHERE addnContactID = LawFrimContactID
+			AND addbPrimary = 1
+			AND addnContactCtgID = 2
+	) ad1
+	WHERE plnnCaseID IS NOT NULL
+		AND aparty.ROLEID IN (
+			SELECT
+				ROLEID
+			FROM [WilliamPagerSaga].dbo.EROLE
+			WHERE DESCRIPTION LIKE '%plain%'
+		)
+
+ALTER TABLE sma_trn_lawfirms ENABLE TRIGGER ALL
+GO

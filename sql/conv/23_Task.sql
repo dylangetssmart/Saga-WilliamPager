@@ -1,78 +1,285 @@
-INSERT INTO [sma_MST_TaskTemplateGroup]
-([tskgrpName],[tskgrpRecUserID],[tskgrpDtCreated],[tskgrpModifyUserID],[tskgrpDtModified])
-Select 'SAGA',368,GETDATE(),null,null
-go
-INSERT INTO [sma_mst_Task_Template]
-([tskMasterDetails],[tskCategoryID],[tskDoneNoteTypeID],[tskPriority],[tskSubject],[tskDueDateShift],[tskDefAssigneeRole],[tskDocTemplateId],[tskDocTemplateKeyword]
-,[tskNewStatusId],[tskChangeStatusId],[tskCreatedBy],[tskCreatedDt],[tskModifiedBy],[tskModifiedDt],[tskDefAssignee],[tskDefSecondaryRole])
-Select distinct description, case when atype.description='review' then 3 else 4 end,null,1,null,10,null,null,null,null,null,368,GETDATE(),null,null,null,null 
-from   [WilliamPagerSaga].dbo.PLRULE AType
-where type in (0,3) and ltrim(rtrim(description)) not in (select LTRIM(rtrim([tskMasterDetails])) from   [sma_mst_Task_Template] )
-go
-Alter Table sma_mst_TaskCaseStatus NOCHECK CONSTRAINT ALL
-  insert into sma_mst_taskcasestatus
-  select tskMasterID,0,getdate(),368,null,null
-  from [sma_mst_Task_Template] where tskMasterID>=(select MIN(tskMasterID) from [sma_mst_Task_Template] where [tskCreatedDt]>GETDATE()-1)
-  go
-  Declare @TemplateGroupID int
-  Select @TemplateGroupID=max(tskgrpid) from [sma_MST_TaskTemplateGroup] where tskgrpName='SAGA'
-  
-  insert into [sma_TRN_TaskTemplateGroup]
-  Select @TemplateGroupID,tskMasterID,368,GETDATE(),null,null
-  From [sma_mst_Task_Template] where tskMasterID>=(select MIN(tskMasterID) from [sma_mst_Task_Template] where [tskCreatedDt]>GETDATE()-1)
-  go
-select distinct MATTERID,t.Data,THREADID into #tmpTask from [WilliamPagerSaga].dbo.MRULASS muu 
-cross apply dbo.Split(RESPONSIBLELIST,',')  as t 
-where t.Data is not null and MATTERID is not null and RESPONSIBLELIST like '%,%'
-order by MATTERID
-go
-Insert into #tmpTask
-select distinct MATTERID,RESPONSIBLELIST,THREADID
-from [WilliamPagerSaga].dbo.MRULASS muu 
-where RESPONSIBLELIST is not null and MATTERID is not null and RESPONSIBLELIST not like '%,%'
-order by MATTERID
-go
-INSERT INTO [dbo].[sma_TRN_TaskNew]
-([tskCaseID],[tskDueDate],[tskStartDate],[tskRequestorID],[tskAssigneeId],[tskReminderDays],[tskDescription]
-,[tskCreatedDt],[tskCreatedUserID],[tskCompleted],[tskMasterID],[tskCtgID],[tskSummary],[tskModifiedDt],[tskModifyUserID],[tskPriority])
-Select casnCaseID,case when mr.DATE1 between '1/1/1900' and '12/31/2079' then mr.date1 else null end,case when mr.DATECREATED between '1/1/1900' and '12/31/2079' then mr.DATECREATED else null end,u1.usrnUserID,u3.usrnUserID,null,isnull(mr.TITLE,'')+char(13)+convert(varchar(4000),isnull(mr.notes,'')),case when mr.DATECREATED between '1/1/1900' and '12/31/2079' then mr.DATECREATED else getdate() end,u1.usrnUserID,case when mr.Date2 IS not null then 1 else 0 end,
-tskMasterID,tskCategoryID,isnull(mr.TITLE,''),case when mr.DATEREVISED between '1/1/1900' and '12/31/2079' then mr.DATEREVISED else null end,u2.usrnUserID,tskPriority 
-from [WilliamPagerSaga].dbo.matter m
-Left Join [WilliamPagerSaga].dbo.MRULASS mr on m.MATTERID=mr.MATTERID
-left join #tmpTask z on z.MATTERID=mr.MATTERID and z.THREADID=mr.THREADID
-Left Join [WilliamPagerSaga].dbo.MRULENT mrl on mr.THREADID=mrl.THREADID
-Left Join [WilliamPagerSaga].dbo.lw_matter lm on m.matterid=lm.matterid
-Left Join [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg1 on m.MATTERGROUP1ID=mg1.MATTERGROUPID  
-left join [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg2 on  m.MATTERGROUP2ID=mg2.MATTERGROUPID
-left join [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg3 on  m.MATTERGROUP3ID=mg3.MATTERGROUPID
-Outer apply (select top 1   pt.description from   [WilliamPagerSaga].dbo.PLRULE pt where mr.RULETYPEID=pt.RULETYPEID) AType
-Outer apply(select top 1   aa.partytype   from  [WilliamPagerSaga].dbo.assign aa where m.MATTERID=aa.MATTERID ) CrOurSide
-Left join sma_trn_cases  on cassCaseNumber=m.MATTERNUMBER
-left join sma_trn_plaintiff on plnncaseid=casncaseid and plnbisprimary=1
-left join sma_MST_SOLDetails on sldnCaseTypeID=casnOrgCaseTypeID and casnState=sldnStateID and plnnrole=sldndefrole and sldnsoltypeid=14
-left join sma_MST_IndvContacts l on l.cinsGrade=mrl.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts g on g.cinsGrade=mrl.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=g.cinnContactID
-left join WilliamPagerSaga.dbo.ENTITIES et  on et.WPINITIALS=ltrim(rtrim(data))
-left join sma_MST_IndvContacts inew on inew.cinsGrade=et.ENTITYID
-left join sma_mst_users u3 on u3.usrnContactID=inew.cinnContactID
-left join [sma_mst_Task_Template] on  atype.DESCRIPTION  =tskMasterDetails
-Where casncaseid is not null  and mr.type in (0,3)
+USE WilliamPagerSA
 
-go
-Drop table #tmpTask
-go
-Delete from sma_TRN_TaskNew 
-where  not exists (
-select MIN(tskid) as tskid from  [sma_TRN_TaskNew] where tskID=tskID
-Group by tskCaseID,tskDueDate,tskStartDate,tskRequestorID,tskAssigneeId,tskDescription,tskCreatedDt,tskCreatedUserID,tskCompleted,tskMasterID,tskCtgID,tskSummary)
-go         
-update a 
-set a.tskCompleted=2,a.tskModifiedDt=getdate(),a.tskModifyUserID=368
-from sma_TRN_TaskNew a where tskAssigneeId is null and isnull(tskCompleted,0)=0
-and  exists(select * from sma_trn_tasknew b where a.tskCaseID=b.tskCaseID and a.tskDescription=b.tskDescription and a.tskDueDate=b.tskDueDate and isnull(b.tskCompleted,0)=0 and b.tskAssigneeId is not null)
-go
+INSERT INTO [sma_MST_TaskTemplateGroup]
+	(
+	[tskgrpName]
+   ,[tskgrpRecUserID]
+   ,[tskgrpDtCreated]
+   ,[tskgrpModifyUserID]
+   ,[tskgrpDtModified]
+	)
+	SELECT
+		'SAGA'
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+GO
+INSERT INTO [sma_mst_Task_Template]
+	(
+	[tskMasterDetails]
+   ,[tskCategoryID]
+   ,[tskDoneNoteTypeID]
+   ,[tskPriority]
+   ,[tskSubject]
+   ,[tskDueDateShift]
+   ,[tskDefAssigneeRole]
+   ,[tskDocTemplateId]
+   ,[tskDocTemplateKeyword]
+   ,[tskNewStatusId]
+   ,[tskChangeStatusId]
+   ,[tskCreatedBy]
+   ,[tskCreatedDt]
+   ,[tskModifiedBy]
+   ,[tskModifiedDt]
+   ,[tskDefAssignee]
+   ,[tskDefSecondaryRole]
+	)
+	SELECT DISTINCT
+		description
+	   ,CASE
+			WHEN AType.description = 'review'
+				THEN 3
+			ELSE 4
+		END
+	   ,NULL
+	   ,1
+	   ,NULL
+	   ,10
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].dbo.PLRULE AType
+	WHERE type IN (0, 3)
+		AND LTRIM(RTRIM(description)) NOT IN (
+			SELECT
+				LTRIM(RTRIM([tskMasterDetails]))
+			FROM [sma_mst_Task_Template]
+		)
+GO
+ALTER TABLE sma_mst_TaskCaseStatus NOCHECK CONSTRAINT ALL
+INSERT INTO sma_mst_taskcasestatus
+	SELECT
+		tskMasterID
+	   ,0
+	   ,GETDATE()
+	   ,368
+	   ,NULL
+	   ,NULL
+	FROM [sma_mst_Task_Template]
+	WHERE tskMasterID >= (
+			SELECT
+				MIN(tskMasterID)
+			FROM [sma_mst_Task_Template]
+			WHERE [tskCreatedDt] > GETDATE() - 1
+		)
+GO
+DECLARE @TemplateGroupID INT
+SELECT
+	@TemplateGroupID = MAX(tskgrpid)
+FROM [sma_MST_TaskTemplateGroup]
+WHERE tskgrpName = 'SAGA'
+
+INSERT INTO [sma_TRN_TaskTemplateGroup]
+	SELECT
+		@TemplateGroupID
+	   ,tskMasterID
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	FROM [sma_mst_Task_Template]
+	WHERE tskMasterID >= (
+			SELECT
+				MIN(tskMasterID)
+			FROM [sma_mst_Task_Template]
+			WHERE [tskCreatedDt] > GETDATE() - 1
+		)
+GO
+SELECT DISTINCT
+	MATTERID
+   ,t.Data
+   ,THREADID INTO #tmpTask
+FROM [WilliamPagerSaga].dbo.MRULASS muu
+CROSS APPLY dbo.Split(RESPONSIBLELIST, ',') AS t
+WHERE t.Data IS NOT NULL
+	AND MATTERID IS NOT NULL
+	AND RESPONSIBLELIST LIKE '%,%'
+ORDER BY MATTERID
+GO
+INSERT INTO #tmpTask
+	SELECT DISTINCT
+		MATTERID
+	   ,RESPONSIBLELIST
+	   ,THREADID
+	FROM [WilliamPagerSaga].dbo.MRULASS muu
+	WHERE RESPONSIBLELIST IS NOT NULL
+		AND MATTERID IS NOT NULL
+		AND RESPONSIBLELIST NOT LIKE '%,%'
+	ORDER BY MATTERID
+GO
+INSERT INTO [dbo].[sma_TRN_TaskNew]
+	(
+	[tskCaseID]
+   ,[tskDueDate]
+   ,[tskStartDate]
+   ,[tskRequestorID]
+   ,[tskAssigneeId]
+   ,[tskReminderDays]
+   ,[tskDescription]
+   ,[tskCreatedDt]
+   ,[tskCreatedUserID]
+   ,[tskCompleted]
+   ,[tskMasterID]
+   ,[tskCtgID]
+   ,[tskSummary]
+   ,[tskModifiedDt]
+   ,[tskModifyUserID]
+   ,[tskPriority]
+	)
+	SELECT
+		casnCaseID
+	   ,CASE
+			WHEN mr.DATE1 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN mr.date1
+			ELSE NULL
+		END
+	   ,CASE
+			WHEN mr.DATECREATED BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN mr.DATECREATED
+			ELSE NULL
+		END
+	   ,u1.usrnUserID
+	   ,u3.usrnUserID
+	   ,NULL
+	   ,ISNULL(mr.TITLE, '') + CHAR(13) + CONVERT(VARCHAR(4000), ISNULL(mr.notes, ''))
+	   ,CASE
+			WHEN mr.DATECREATED BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN mr.DATECREATED
+			ELSE GETDATE()
+		END
+	   ,u1.usrnUserID
+	   ,CASE
+			WHEN mr.Date2 IS NOT NULL
+				THEN 1
+			ELSE 0
+		END
+	   ,tskMasterID
+	   ,tskCategoryID
+	   ,ISNULL(mr.TITLE, '')
+	   ,CASE
+			WHEN mr.DATEREVISED BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN mr.DATEREVISED
+			ELSE NULL
+		END
+	   ,u2.usrnUserID
+	   ,tskPriority
+	FROM [WilliamPagerSaga].dbo.matter m
+	LEFT JOIN [WilliamPagerSaga].dbo.MRULASS mr
+		ON m.MATTERID = mr.MATTERID
+	LEFT JOIN #tmpTask z
+		ON z.MATTERID = mr.MATTERID
+			AND z.THREADID = mr.THREADID
+	LEFT JOIN [WilliamPagerSaga].dbo.MRULENT mrl
+		ON mr.THREADID = mrl.THREADID
+	LEFT JOIN [WilliamPagerSaga].dbo.lw_matter lm
+		ON m.matterid = lm.matterid
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg1
+		ON m.MATTERGROUP1ID = mg1.MATTERGROUPID
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg2
+		ON m.MATTERGROUP2ID = mg2.MATTERGROUPID
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_A_MATTERGROUP mg3
+		ON m.MATTERGROUP3ID = mg3.MATTERGROUPID
+	OUTER APPLY (
+		SELECT TOP 1
+			pt.description
+		FROM [WilliamPagerSaga].dbo.PLRULE pt
+		WHERE mr.RULETYPEID = pt.RULETYPEID
+	) AType
+	OUTER APPLY (
+		SELECT TOP 1
+			aa.partytype
+		FROM [WilliamPagerSaga].dbo.assign aa
+		WHERE m.MATTERID = aa.MATTERID
+	) CrOurSide
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = m.MATTERNUMBER
+	LEFT JOIN sma_trn_plaintiff
+		ON plnncaseid = casncaseid
+			AND plnbisprimary = 1
+	LEFT JOIN sma_MST_SOLDetails
+		ON sldnCaseTypeID = casnOrgCaseTypeID
+			AND casnState = sldnStateID
+			AND plnnrole = sldndefrole
+			AND sldnsoltypeid = 14
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = mrl.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts g
+		ON g.cinsGrade = mrl.REVISORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = g.cinnContactID
+	LEFT JOIN WilliamPagerSaga.dbo.ENTITIES et
+		ON et.WPINITIALS = LTRIM(RTRIM(data))
+	LEFT JOIN sma_MST_IndvContacts inew
+		ON inew.cinsGrade = et.ENTITYID
+	LEFT JOIN sma_mst_users u3
+		ON u3.usrnContactID = inew.cinnContactID
+	LEFT JOIN [sma_mst_Task_Template]
+		ON AType.DESCRIPTION = tskMasterDetails
+	WHERE casncaseid IS NOT NULL
+		AND mr.type IN (0, 3)
+
+GO
+DROP TABLE #tmpTask
+GO
+DELETE FROM sma_TRN_TaskNew
+WHERE NOT EXISTS (
+		SELECT
+			MIN(tskid) AS tskid
+		FROM [sma_TRN_TaskNew]
+		WHERE tskid = tskid
+		GROUP BY tskCaseID
+				,tskDueDate
+				,tskStartDate
+				,tskRequestorID
+				,tskAssigneeId
+				,tskDescription
+				,tskCreatedDt
+				,tskCreatedUserID
+				,tskCompleted
+				,tskMasterID
+				,tskCtgID
+				,tskSummary
+	)
+GO
+UPDATE a
+SET a.tskCompleted = 2
+   ,a.tskModifiedDt = GETDATE()
+   ,a.tskModifyUserID = 368
+FROM sma_TRN_TaskNew a
+WHERE tskAssigneeId IS NULL
+AND ISNULL(tskCompleted, 0) = 0
+AND EXISTS (
+	SELECT
+		*
+	FROM sma_trn_tasknew b
+	WHERE a.tskCaseID = b.tskCaseID
+		AND a.tskDescription = b.tskDescription
+		AND a.tskDueDate = b.tskDueDate
+		AND ISNULL(b.tskCompleted, 0) = 0
+		AND b.tskAssigneeId IS NOT NULL
+)
+GO
 --Update a 
 --set tskDueDate=getdate(),tskAssigneeId=case when tskassigneeid is null then usrnuserid end
 --from sma_trn_tasknew a

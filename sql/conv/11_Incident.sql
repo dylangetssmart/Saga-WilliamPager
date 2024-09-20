@@ -1,8 +1,14 @@
+USE WilliamPagerSA
 
-alter table [sma_TRN_Incidents] disable trigger all
+ALTER TABLE [sma_TRN_Incidents] DISABLE TRIGGER ALL
 
-declare @StateID int
-select @StateID=sttnStateID from WilliamPagerSaga.dbo.SETTINGS join sma_MST_States on LTRIM(RTRIM(addrstate))=LTRIM(RTRIM(sttsCode)) or LTRIM(RTRIM(addrstate))=LTRIM(RTRIM(sttsDescription))
+DECLARE @StateID INT
+SELECT
+	@StateID = sttnStateID
+FROM WilliamPagerSaga.dbo.SETTINGS
+JOIN sma_MST_States
+	ON LTRIM(RTRIM(addrstate)) = LTRIM(RTRIM(sttsCode))
+		OR LTRIM(RTRIM(addrstate)) = LTRIM(RTRIM(sttsDescription))
 
 --INSERT INTO [sma_TRN_Incidents]
 --([CaseId],[IncidentDate],[StateID],[LiabilityCodeId],[IncidentFacts],[MergedFacts],[Comments],[IncidentTime],[RecUserID],[DtCreated],[ModifyUserID],[DtModified])
@@ -22,37 +28,84 @@ select @StateID=sttnStateID from WilliamPagerSaga.dbo.SETTINGS join sma_MST_Stat
 --where casnCaseID is not null
 
 INSERT INTO [sma_TRN_Incidents]
-([CaseId],[IncidentDate],[StateID],[LiabilityCodeId],[IncidentFacts],[MergedFacts],[Comments],[IncidentTime],[RecUserID],[DtCreated],[ModifyUserID],[DtModified])
-select A.c1,A.c2,A.c3,A.c4,A.c5,A.c6,A.c7,A.c8,A.c9,A.c10,A.c11,A.c12
-from
-(
-Select distinct 
-	casnCaseID																	as c1,
-	DATETIMEOFINCIDENT															as c2,
-	case when isnull(sttnStateID,'')='' then @StateID else sttnStateID end		as c3,
-	null																		as c4,
-	convert(varchar(8000),e.notes)												as c5,
-	convert(varchar(8000),d.notes)												as c6,
-	convert(varchar(8000),substring(c.notes,0,2000))							as c7,
-	CONVERT(time,DATETIMEOFINCIDENT)											as c8,
-	case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end	as c9,
-	case (b.datecreated) when null then GETDATE() else (b.datecreated) end		as c10,
-	(u2.usrnuserid)																as c11,
-	(b.daterevised)																as c12,
-	ROW_NUMBER() over(partition by casnCaseID order by casnCaseID ) row_index
- FROM [WilliamPagerSaga].[dbo].[LW_MATTER] a
-Left Join [WilliamPagerSaga].[dbo].[Matter] b on b.MATTERID=a.MATTERID
-Left Join sma_trn_cases on b.MATTERNUMBER=cassCaseNumber
-left join sma_MST_States on ltrim(rtrim(sttsCode))=ltrim(rtrim(LOCATIONSTATE))
-left join [WilliamPagerSaga].[dbo].[NOTE] c on c.NOTEID=a.ALERTNOTEID
-left join [WilliamPagerSaga].[dbo].[NOTE] d on d.NOTEID=a.FACTDETAILNOTEID
-left join [WilliamPagerSaga].[dbo].[NOTE] e on e.NOTEID=a.FACTSUMMARYNOTEID
-left join sma_MST_IndvContacts l on l.cinsGrade=b.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=b.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-where casnCaseID is not null
-) A where A.row_index=1
+	(
+	[CaseId]
+   ,[IncidentDate]
+   ,[StateID]
+   ,[LiabilityCodeId]
+   ,[IncidentFacts]
+   ,[MergedFacts]
+   ,[Comments]
+   ,[IncidentTime]
+   ,[RecUserID]
+   ,[DtCreated]
+   ,[ModifyUserID]
+   ,[DtModified]
+	)
+	SELECT
+		A.c1
+	   ,A.c2
+	   ,A.c3
+	   ,A.c4
+	   ,A.c5
+	   ,A.c6
+	   ,A.c7
+	   ,A.c8
+	   ,A.c9
+	   ,A.c10
+	   ,A.c11
+	   ,A.c12
+	FROM (
+		SELECT DISTINCT
+			casnCaseID AS c1
+		   ,DATETIMEOFINCIDENT AS c2
+		   ,CASE
+				WHEN ISNULL(sttnStateID, '') = ''
+					THEN @StateID
+				ELSE sttnStateID
+			END AS c3
+		   ,NULL AS c4
+		   ,CONVERT(VARCHAR(8000), e.notes) AS c5
+		   ,CONVERT(VARCHAR(8000), d.notes) AS c6
+		   ,CONVERT(VARCHAR(8000), SUBSTRING(c.notes, 0, 2000)) AS c7
+		   ,CONVERT(TIME, DATETIMEOFINCIDENT) AS c8
+		   ,CASE ISNULL((u1.usrnuserid), '')
+				WHEN ''
+					THEN 368
+				ELSE (u1.usrnuserid)
+			END AS c9
+		   ,CASE (b.datecreated)
+				WHEN NULL
+					THEN GETDATE()
+				ELSE (b.datecreated)
+			END AS c10
+		   ,(u2.usrnuserid) AS c11
+		   ,(b.daterevised) AS c12
+		   ,ROW_NUMBER() OVER (PARTITION BY casnCaseID ORDER BY casnCaseID) row_index
+		FROM [WilliamPagerSaga].[dbo].[LW_MATTER] a
+		LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] b
+			ON b.MATTERID = a.MATTERID
+		LEFT JOIN sma_trn_cases
+			ON b.MATTERNUMBER = cassCaseNumber
+		LEFT JOIN sma_MST_States
+			ON LTRIM(RTRIM(sttsCode)) = LTRIM(RTRIM(LOCATIONSTATE))
+		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTE] c
+			ON c.NOTEID = a.ALERTNOTEID
+		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTE] d
+			ON d.NOTEID = a.FACTDETAILNOTEID
+		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTE] e
+			ON e.NOTEID = a.FACTSUMMARYNOTEID
+		LEFT JOIN sma_MST_IndvContacts l
+			ON l.cinsGrade = b.CREATORID
+		LEFT JOIN sma_mst_users u1
+			ON u1.usrnContactID = l.cinnContactID
+		LEFT JOIN sma_MST_IndvContacts m
+			ON m.cinsGrade = b.REVISORID
+		LEFT JOIN sma_mst_users u2
+			ON u2.usrnContactID = m.cinnContactID
+		WHERE casnCaseID IS NOT NULL
+	) A
+	WHERE A.row_index = 1
 
 
 
@@ -60,101 +113,241 @@ where casnCaseID is not null
 
 
 
-Update sma_TRN_Incidents
-set StateID=67 
-where StateID is null
+UPDATE sma_TRN_Incidents
+SET StateID = 67
+WHERE StateID IS NULL
 
-update sma_TRN_Incidents
-set IncidentFacts=ltrim(replace(
-       dbo.RegExReplace(IncidentFacts,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')      
-      ),Comments=ltrim(replace(
-       dbo.RegExReplace(Comments,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')      
-      ),MergedFacts = ltrim(replace(
-       dbo.RegExReplace(MergedFacts,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')      
-      )
+UPDATE sma_TRN_Incidents
+SET IncidentFacts = LTRIM(REPLACE(
+	dbo.RegExReplace(IncidentFacts, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+	, '}', '')
+	)
+   ,Comments = LTRIM(REPLACE(
+	dbo.RegExReplace(Comments, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+	, '}', '')
+	)
+   ,MergedFacts = LTRIM(REPLACE(
+	dbo.RegExReplace(MergedFacts, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+	, '}', '')
+	)
 
-alter table [sma_TRN_Incidents] enable trigger all
+ALTER TABLE [sma_TRN_Incidents] ENABLE TRIGGER ALL
 
 
-Alter table sma_trn_cases disable trigger all
+ALTER TABLE sma_trn_cases DISABLE TRIGGER ALL
 
-Update a 
-set casnState=StateID
-From sma_trn_cases a
-LEFT join sma_trn_incidents on caseid = casnCaseID
+UPDATE a
+SET casnState = StateID
+FROM sma_trn_cases a
+LEFT JOIN sma_trn_incidents
+	ON caseid = casnCaseID
 
-Alter table sma_trn_cases Enable trigger all
-go
+ALTER TABLE sma_trn_cases ENABLE TRIGGER ALL
+GO
 
-Insert into sma_MST_CaseValue
-select distinct 'Range',valuelow,valuehigh,'',368,getdate(),NULL,NULL,NULL,NULL
-FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-where cast(valuelow as varchar(50))+'-'+ cast(valuehigh as varchar(50)) not in (select cast(csvnFromValue as varchar(50))+'-'+ cast(csvnToValue as varchar(50)) from sma_MST_CaseValue)
-go
+INSERT INTO sma_MST_CaseValue
+	SELECT DISTINCT
+		'Range'
+	   ,valuelow
+	   ,valuehigh
+	   ,''
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
+	WHERE CAST(valuelow AS VARCHAR(50)) + '-' + CAST(valuehigh AS VARCHAR(50)) NOT IN (
+			SELECT
+				CAST(csvnFromValue AS VARCHAR(50)) + '-' + CAST(csvnToValue AS VARCHAR(50))
+			FROM sma_MST_CaseValue
+		)
+GO
 
 INSERT INTO [dbo].[sma_TRN_CaseValue]
-([csvnCaseID],[csvnValueID],[csvnValue],[csvsComments],[csvdFromDate],[csvdToDate],[csvnRecUserID],[csvdDtCreated],[csvnModifyUserID],[csvdDtModified],[csvnLevelNo],[csvnMinSettlementValue])
-select distinct casnCaseID,csvnValueID,csvnFromValue,convert(varchar(2000),ltrim(replace(dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)',''),'}',''))) ,getdate(),NULL,368,getdatE(),NULL,NULL,1,NULL
+	(
+	[csvnCaseID]
+   ,[csvnValueID]
+   ,[csvnValue]
+   ,[csvsComments]
+   ,[csvdFromDate]
+   ,[csvdToDate]
+   ,[csvnRecUserID]
+   ,[csvdDtCreated]
+   ,[csvnModifyUserID]
+   ,[csvdDtModified]
+   ,[csvnLevelNo]
+   ,[csvnMinSettlementValue]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,csvnValueID
+	   ,csvnFromValue
+	   ,CONVERT(VARCHAR(2000), LTRIM(REPLACE(dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', ''), '}', '')))
+	   ,GETDATE()
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,1
+	   ,NULL
+	FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+		ON a.assignid = ev.assignid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+		ON m.matterid = a.matterid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[note] n
+		ON n.noteid = ev.noteid
+	LEFT JOIN sma_MST_CaseValue
+		ON CAST(csvnFromValue AS VARCHAR(50)) + '-' + CAST(csvnToValue AS VARCHAR(50)) = CAST(valuelow AS VARCHAR(50)) + '-' + CAST(valuehigh AS VARCHAR(50))
+	LEFT JOIN sma_trn_cases z
+		ON z.casscasenumber = m.matternumber
+GO
+UPDATE z
+SET casnCaseValueFrom = valuelow
+   ,casnCaseValueTo = valuehigh
+   ,casncasevalueid = csvnValueID
 FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-left join [WilliamPagerSaga].[dbo].[Assign] a on a.assignid=ev.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join [WilliamPagerSaga].[dbo].[note] n on n.noteid=ev.noteid
-left join sma_MST_CaseValue  on cast(csvnFromValue as varchar(50))+'-'+ cast(csvnToValue as varchar(50)) = cast(valuelow as varchar(50))+'-'+ cast(valuehigh as varchar(50))
-left join sma_trn_cases z on z.casscasenumber=m.matternumber
-go
-update z 
-set casnCaseValueFrom=valuelow,casnCaseValueTo=valuehigh,casncasevalueid=csvnValueID
-FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-left join [WilliamPagerSaga].[dbo].[Assign] a on a.assignid=ev.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join sma_MST_CaseValue n on cast(csvnFromValue as varchar(50))+'-'+ cast(csvnToValue as varchar(50)) = cast(valuelow as varchar(50))+'-'+ cast(valuehigh as varchar(50))
-left join sma_trn_cases z on z.casscasenumber=m.matternumber
-go
-delete from [sma_MST_LiabilityCode]
+LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+	ON a.assignid = ev.assignid
+LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+	ON m.matterid = a.matterid
+LEFT JOIN sma_MST_CaseValue n
+	ON CAST(csvnFromValue AS VARCHAR(50)) + '-' + CAST(csvnToValue AS VARCHAR(50)) = CAST(valuelow AS VARCHAR(50)) + '-' + CAST(valuehigh AS VARCHAR(50))
+LEFT JOIN sma_trn_cases z
+	ON z.casscasenumber = m.matternumber
+GO
+DELETE FROM [sma_MST_LiabilityCode]
 INSERT INTO [dbo].[sma_MST_LiabilityCode]
-([lbcsCode],[lbcsDscrptn],[lbcnRecUserID],[lbcdDtCreated],[lbcnModifyUserID],[lbcdDtModified],[lbcnLevelNo])
-Select distinct '',liability,368,getdate(),null,null,'' FROM [WilliamPagerSaga].[dbo].[LW_EVAL] where liability is not null
-go
-Update x
-set x.LiabilityCodeId=lbcnLiabilityID
+	(
+	[lbcsCode]
+   ,[lbcsDscrptn]
+   ,[lbcnRecUserID]
+   ,[lbcdDtCreated]
+   ,[lbcnModifyUserID]
+   ,[lbcdDtModified]
+   ,[lbcnLevelNo]
+	)
+	SELECT DISTINCT
+		''
+	   ,liability
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].[dbo].[LW_EVAL]
+	WHERE liability IS NOT NULL
+GO
+UPDATE x
+SET x.LiabilityCodeId = lbcnLiabilityID
 FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-left join [WilliamPagerSaga].[dbo].[Assign] a on a.assignid=ev.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join sma_MST_CaseValue n on cast(csvnFromValue as varchar(50))+'-'+ cast(csvnToValue as varchar(50)) = cast(valuelow as varchar(50))+'-'+ cast(valuehigh as varchar(50))
-left join sma_trn_cases z on z.casscasenumber=m.matternumber
-left join sma_trn_incidents x on x.caseid=casncaseid
-left join [sma_MST_LiabilityCode]  on [lbcsDscrptn]=liability
-where liability is not null 
-go
+LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+	ON a.assignid = ev.assignid
+LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+	ON m.matterid = a.matterid
+LEFT JOIN sma_MST_CaseValue n
+	ON CAST(csvnFromValue AS VARCHAR(50)) + '-' + CAST(csvnToValue AS VARCHAR(50)) = CAST(valuelow AS VARCHAR(50)) + '-' + CAST(valuehigh AS VARCHAR(50))
+LEFT JOIN sma_trn_cases z
+	ON z.casscasenumber = m.matternumber
+LEFT JOIN sma_trn_incidents x
+	ON x.caseid = casncaseid
+LEFT JOIN [sma_MST_LiabilityCode]
+	ON [lbcsDscrptn] = liability
+WHERE liability IS NOT NULL
+GO
 
 
-Insert into sma_MST_CaseValue
-select distinct 'Range',isnull(valuelow,'0.00'),isnull(valuehigh,'0.00'),'',368,getdate(),NULL,NULL,NULL,NULL
-FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-where cast(isnull(valuelow,'0.00') as varchar(50))+'-'+ cast(isnull(VALUEHIGH,'0.00') as varchar(50)) not in (select cast(isnull(csvnFromValue,'0.00') as varchar(50))+'-'+ cast(isnull(csvnToValue,'0.00') as varchar(50)) from sma_MST_CaseValue)
-and (VALUELOW is null and VALUEHIGH is not null) or (VALUELOW is not null and VALUEHIGH is  null)
-go
+INSERT INTO sma_MST_CaseValue
+	SELECT DISTINCT
+		'Range'
+	   ,ISNULL(valuelow, '0.00')
+	   ,ISNULL(valuehigh, '0.00')
+	   ,''
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
+	WHERE CAST(ISNULL(valuelow, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(VALUEHIGH, '0.00') AS VARCHAR(50)) NOT IN (
+			SELECT
+				CAST(ISNULL(csvnFromValue, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(csvnToValue, '0.00') AS VARCHAR(50))
+			FROM sma_MST_CaseValue
+		)
+		AND (VALUELOW IS NULL
+		AND VALUEHIGH IS NOT NULL)
+		OR (VALUELOW IS NOT NULL
+		AND VALUEHIGH IS NULL)
+GO
 
 INSERT INTO [dbo].[sma_TRN_CaseValue]
-([csvnCaseID],[csvnValueID],[csvnValue],[csvsComments],[csvdFromDate],[csvdToDate],[csvnRecUserID],[csvdDtCreated],[csvnModifyUserID],[csvdDtModified],[csvnLevelNo],[csvnMinSettlementValue])
-select distinct casnCaseID,csvnValueID,csvnFromValue,convert(varchar(2000),ltrim(replace(dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)',''),'}',''))) ,getdate(),NULL,368,getdatE(),NULL,NULL,1,NULL
-FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-left join [WilliamPagerSaga].[dbo].[Assign] a on a.assignid=ev.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join [WilliamPagerSaga].[dbo].[note] n on n.noteid=ev.noteid
-left join sma_MST_CaseValue  on  cast(isnull(csvnFromValue,'0.00') as varchar(50))+'-'+ cast(isnull(csvnToValue,'0.00') as varchar(50)) = cast(isnull(valuelow,'0.00') as varchar(50))+'-'+ cast(isnull(valuehigh,'0.00') as varchar(50))
-left join sma_trn_cases z on z.casscasenumber=m.matternumber
-where (VALUELOW is null and VALUEHIGH is not null) or (VALUELOW is not null and VALUEHIGH is  null) and casnCaseID not in (select csvncaseid from [sma_TRN_CaseValue])
-go
+	(
+	[csvnCaseID]
+   ,[csvnValueID]
+   ,[csvnValue]
+   ,[csvsComments]
+   ,[csvdFromDate]
+   ,[csvdToDate]
+   ,[csvnRecUserID]
+   ,[csvdDtCreated]
+   ,[csvnModifyUserID]
+   ,[csvdDtModified]
+   ,[csvnLevelNo]
+   ,[csvnMinSettlementValue]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,csvnValueID
+	   ,csvnFromValue
+	   ,CONVERT(VARCHAR(2000), LTRIM(REPLACE(dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', ''), '}', '')))
+	   ,GETDATE()
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,1
+	   ,NULL
+	FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+		ON a.assignid = ev.assignid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+		ON m.matterid = a.matterid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[note] n
+		ON n.noteid = ev.noteid
+	LEFT JOIN sma_MST_CaseValue
+		ON CAST(ISNULL(csvnFromValue, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(csvnToValue, '0.00') AS VARCHAR(50)) = CAST(ISNULL(valuelow, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(valuehigh, '0.00') AS VARCHAR(50))
+	LEFT JOIN sma_trn_cases z
+		ON z.casscasenumber = m.matternumber
+	WHERE (VALUELOW IS NULL
+		AND VALUEHIGH IS NOT NULL)
+		OR (VALUELOW IS NOT NULL
+		AND VALUEHIGH IS NULL)
+		AND casnCaseID NOT IN (
+			SELECT
+				csvncaseid
+			FROM [sma_TRN_CaseValue]
+		)
+GO
 
-  update z 
-set casnCaseValueFrom=isnull(valuelow,'0.00'),casnCaseValueTo=isnull(valuehigh,'0.00'),casncasevalueid=csvnValueID
+UPDATE z
+SET casnCaseValueFrom = ISNULL(valuelow, '0.00')
+   ,casnCaseValueTo = ISNULL(valuehigh, '0.00')
+   ,casncasevalueid = csvnValueID
 FROM [WilliamPagerSaga].[dbo].[LW_EVAL] ev
-left join [WilliamPagerSaga].[dbo].[Assign] a on a.assignid=ev.assignid
-left join [WilliamPagerSaga].[dbo].[Matter] m on m.matterid=a.matterid
-left join sma_MST_CaseValue n on cast(isnull(csvnFromValue,'0.00') as varchar(50))+'-'+ cast(isnull(csvnToValue,'0.00') as varchar(50)) = cast(isnull(valuelow,'0.00') as varchar(50))+'-'+ cast(isnull(valuehigh,'0.00') as varchar(50))
-left join sma_trn_cases z on z.casscasenumber=m.matternumber
-where (VALUELOW is null and VALUEHIGH is not null) or (VALUELOW is not null and VALUEHIGH is  null)
+LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
+	ON a.assignid = ev.assignid
+LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
+	ON m.matterid = a.matterid
+LEFT JOIN sma_MST_CaseValue n
+	ON CAST(ISNULL(csvnFromValue, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(csvnToValue, '0.00') AS VARCHAR(50)) = CAST(ISNULL(valuelow, '0.00') AS VARCHAR(50)) + '-' + CAST(ISNULL(valuehigh, '0.00') AS VARCHAR(50))
+LEFT JOIN sma_trn_cases z
+	ON z.casscasenumber = m.matternumber
+WHERE (VALUELOW IS NULL
+AND VALUEHIGH IS NOT NULL)
+OR (VALUELOW IS NOT NULL
+AND VALUEHIGH IS NULL)

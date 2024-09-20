@@ -1,57 +1,313 @@
+USE WilliamPagerSA
+
 INSERT INTO [sma_MST_VehicleMake]
-([vmksCode],[vmksDscrptn],[vmknRecUserID],[vmkdDtCreated],[vmknModifyUserID],[vmkdDtModified],[vmknLevelNo])
-select distinct '',make,368,getdate(),null,null,'' from [WilliamPagerSaga].[dbo].[LW_VEHICLE]
-except
-select '',vmksDscrptn,368,getdate(),null,null,'' from [sma_MST_VehicleMake]
+	(
+	[vmksCode]
+   ,[vmksDscrptn]
+   ,[vmknRecUserID]
+   ,[vmkdDtCreated]
+   ,[vmknModifyUserID]
+   ,[vmkdDtModified]
+   ,[vmknLevelNo]
+	)
+	SELECT DISTINCT
+		''
+	   ,make
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].[dbo].[LW_VEHICLE]
+	EXCEPT
+	SELECT
+		''
+	   ,vmksDscrptn
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [sma_MST_VehicleMake]
 
 INSERT INTO [sma_MST_VehicleModels]
-([vmdsCode],[vmdnMakeID],[vmdsModelDscrptn],[vmdnRecUserID],[vmddDtCreated],[vmdnModifyUserID],[vmddDtModified],[vmdnLevelNo])
-select distinct '',vmknMakeID,model,368,getdate(),null,null,'' from [WilliamPagerSaga].[dbo].[LW_VEHICLE]
-left join [sma_MST_VehicleMake] on MAKE=vmksDscrptn where vmknMakeID is not null and isnull(model,'') <>''
-except
-Select '',vmdnMakeID,vmdsModelDscrptn ,368,getdate(),null,null,''from [sma_MST_VehicleModels]
-go
-alter table [sma_TRN_Vehicles]
-alter column [vehsComments] varchar(4000)  null
+	(
+	[vmdsCode]
+   ,[vmdnMakeID]
+   ,[vmdsModelDscrptn]
+   ,[vmdnRecUserID]
+   ,[vmddDtCreated]
+   ,[vmdnModifyUserID]
+   ,[vmddDtModified]
+   ,[vmdnLevelNo]
+	)
+	SELECT DISTINCT
+		''
+	   ,vmknMakeID
+	   ,model
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [WilliamPagerSaga].[dbo].[LW_VEHICLE]
+	LEFT JOIN [sma_MST_VehicleMake]
+		ON MAKE = vmksDscrptn
+	WHERE vmknMakeID IS NOT NULL
+		AND ISNULL(model, '') <> ''
+	EXCEPT
+	SELECT
+		''
+	   ,vmdnMakeID
+	   ,vmdsModelDscrptn
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	FROM [sma_MST_VehicleModels]
+GO
+ALTER TABLE [sma_TRN_Vehicles]
+ALTER COLUMN [vehsComments] VARCHAR(4000) NULL
 
-alter table [sma_TRN_Vehicles]
-alter column vehsPlateNo varchar(40) null
-go
+ALTER TABLE [sma_TRN_Vehicles]
+ALTER COLUMN vehsPlateNo VARCHAR(40) NULL
+GO
 INSERT INTO [sma_TRN_Vehicles]
-([vehnCaseID],[vehbIsPlaintiff],[vehnPlntDefID],[vehnOwnerID],[vehnOwnerCtg],[vehnRegistrantID],[vehnRegistrantCtg],[vehnOperatorID],[vehnOperatorCtg],[vehsLicenceNo],[vehnLicenceStateID],[vehdLicExpDt]
-,[vehnVehicleMake],[vehnYear],[vehnModelID],[vehnBodyTypeID],[vehsPlateNo],[vehsColour],[vehnVehicleStateID],[vehsVINNo],[vehdRegExpDt],[vehnIsLeased],[vehnDamageClaim],[vehdEstReqdOn],[vehdEstRecvdOn],[vehdPhotoReqdOn]
-,[vehdPhotoRecvdOn],[vehbRepairs],[vehbTotalLoss],[vehnCostOfRepairs],[vehnValueBefAcdnt],[vehnRentalExpense],[vehnOthExpense],[vehnSalvage],[vehnTLRentalExpense],[vehnTLOthExpense],[vehnLoss],[vehnNetLoss],[vehnLicenseHistory]
-,[vehnPlateSearch],[vehnTitlesearch],[vehnMV104],[vehdOprLicHistory],[vehdPlateSearchOn],[vehdTitleSearchOn],[vehdMV104On],[vehdOprLicHistoryRecd],[vehdPlateSearchOnRecd],[vehdTitleSearchOnRecd],[vehdMV104OnRecd],[vehsComments]
-,[vehbPhotoAttached],[vehnRecUserID],[vehdDtCreated],[vehnModifyUserID],[vehdDtModified],[vehnLevelNo])
-Select  distinct casnCaseID,case when p1.plnnPlaintiffID IS NOT null or p2.plnnPlaintiffID IS NOT null then 1 else 0 end,case when d1.defnDefendentID IS NOT null then d1.defnDefendentID when d2.defnDefendentID IS NOT null then d2.defnDefendentID when p1.plnnPlaintiffID IS NOT null then p1.plnnPlaintiffID when p2.plnnPlaintiffID IS NOT null then p2.plnnPlaintiffID end,
-case when i4.cinnContactID IS NOT null then i4.cinnContactID when o4.connContactID IS NOT null then o4.connContactID end,case when i4.cinnContactID IS NOT null then 1 when o4.connContactID IS NOT null then 2 end
-,case when i3.cinnContactID IS NOT null then i3.cinnContactID when o3.connContactID IS NOT null then o3.connContactID end,case when i3.cinnContactID IS NOT null then 1 when o3.connContactID IS NOT null then 2 end,case when i5.cinnContactID IS NOT null then i5.cinnContactID when o5.connContactID IS NOT null then o5.connContactID end,case when i5.cinnContactID IS NOT null then 1 when o5.connContactID IS NOT null then 2 end
-,DRIVERSLICENSENUMBER,sttnStateID,null,vmknMakeID,MODELYEAR,vmdnModelID,null,PLATENUMBER,COLOR,sttnStateID,VIN,null,case ISLEASED when 'F' then 0 when 'T' then 1 end,
-NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,isnull(convert(varchar(4000),comment),'')+ case when ISNULL(model,'')<>'' then ' '+'Model: '+' '+model end+isnull(convert(varchar(6000),ltrim(replace(replace(replace(dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)','') ,'}',''),char(13),'') ,char(10),''))),'') ,NULL,NULL,NULL,NULL,null,NULL
-FROM [WilliamPagerSaga].[dbo].[LW_VEHICLE]  a
-left join WilliamPagerSaga.dbo.ASSIGN b on  a.assignid=b.ASSIGNID
-left join WilliamPagerSaga.dbo.MATTER c on c.MATTERID=b.MATTERID
-left join sma_trn_cases   on cassCaseNumber=MATTERNUMBER
-left join WilliamPagerSaga.dbo.ASSIGN d on  a.REGISTEREDOWNERID=d.ASSIGNID and a.REGISTEREDOWNERID is not null
-left join WilliamPagerSaga.dbo.ASSIGN e on  a.TITLEOWNERID=e.ASSIGNID and a.TITLEOWNERID is not null
-left join WilliamPagerSaga.dbo.ASSIGN f on  a.OPERATORID=f.ASSIGNID and a.OPERATORID is not null
-left join  sma_MST_IndvContacts i1 on LTRIM(rtrim(i1.cinsGrade))=b.ENTITYID and b.PARTYTYPE=2
-left join  sma_MST_OrgContacts o1 on LTRIM(rtrim(o1.connLevelNo))=b.ENTITYID and b.PARTYTYPE=2
-Left Join sma_TRN_Defendants d1 on i1.cinnContactID=d1.defnContactID  and  d1.defnContactCtgID=1 and d1.defnCaseID=casnCaseID
-Left Join sma_TRN_Defendants d2 on o1.connContactID=d2.defnContactID  and  d2.defnContactCtgID=2 and d2.defnCaseID=casnCaseID
-left join  sma_MST_IndvContacts i2 on LTRIM(rtrim(i2.cinsGrade))=b.ENTITYID and b.PARTYTYPE=1
-left join  sma_MST_OrgContacts o2 on LTRIM(rtrim(o2.connLevelNo))=b.ENTITYID and b.PARTYTYPE=1
-Left Join sma_TRN_Plaintiff p1 on i2.cinnContactID= p1.plnnContactID and p1.plnnContactCtg=1 and p1.plnnCaseID=casnCaseID
-Left Join sma_TRN_Plaintiff p2 on o2.connContactID= p2.plnnContactID and p2.plnnContactCtg=2 and p2.plnnCaseID=casnCaseID
-left join  sma_MST_IndvContacts i3 on LTRIM(rtrim(i3.cinsGrade))=d.ENTITYID
-left join  sma_MST_OrgContacts o3 on LTRIM(rtrim(o3.connLevelNo))=d.ENTITYID
-left join  sma_MST_IndvContacts i4 on LTRIM(rtrim(i4.cinsGrade))=e.ENTITYID
-left join  sma_MST_OrgContacts o4 on LTRIM(rtrim(o4.connLevelNo))=e.ENTITYID
-left join  sma_MST_IndvContacts i5 on LTRIM(rtrim(i5.cinsGrade))=f.ENTITYID
-left join  sma_MST_OrgContacts o5 on LTRIM(rtrim(o5.connLevelNo))=f.ENTITYID
-left join sma_MST_States on sttsCode=[state]
-left join [sma_MST_VehicleMake] on a.MAKE=vmksDscrptn
-left join [sma_MST_VehicleModels] on a.model=[vmdsModelDscrptn] and vmdnMakeID=vmknMakeID
-left join WilliamPagerSaga.dbo.NOTE n on n.NOTEID=VIOLATIONHISTORYNOTEID
+	(
+	[vehnCaseID]
+   ,[vehbIsPlaintiff]
+   ,[vehnPlntDefID]
+   ,[vehnOwnerID]
+   ,[vehnOwnerCtg]
+   ,[vehnRegistrantID]
+   ,[vehnRegistrantCtg]
+   ,[vehnOperatorID]
+   ,[vehnOperatorCtg]
+   ,[vehsLicenceNo]
+   ,[vehnLicenceStateID]
+   ,[vehdLicExpDt]
+   ,[vehnVehicleMake]
+   ,[vehnYear]
+   ,[vehnModelID]
+   ,[vehnBodyTypeID]
+   ,[vehsPlateNo]
+   ,[vehsColour]
+   ,[vehnVehicleStateID]
+   ,[vehsVINNo]
+   ,[vehdRegExpDt]
+   ,[vehnIsLeased]
+   ,[vehnDamageClaim]
+   ,[vehdEstReqdOn]
+   ,[vehdEstRecvdOn]
+   ,[vehdPhotoReqdOn]
+   ,[vehdPhotoRecvdOn]
+   ,[vehbRepairs]
+   ,[vehbTotalLoss]
+   ,[vehnCostOfRepairs]
+   ,[vehnValueBefAcdnt]
+   ,[vehnRentalExpense]
+   ,[vehnOthExpense]
+   ,[vehnSalvage]
+   ,[vehnTLRentalExpense]
+   ,[vehnTLOthExpense]
+   ,[vehnLoss]
+   ,[vehnNetLoss]
+   ,[vehnLicenseHistory]
+   ,[vehnPlateSearch]
+   ,[vehnTitlesearch]
+   ,[vehnMV104]
+   ,[vehdOprLicHistory]
+   ,[vehdPlateSearchOn]
+   ,[vehdTitleSearchOn]
+   ,[vehdMV104On]
+   ,[vehdOprLicHistoryRecd]
+   ,[vehdPlateSearchOnRecd]
+   ,[vehdTitleSearchOnRecd]
+   ,[vehdMV104OnRecd]
+   ,[vehsComments]
+   ,[vehbPhotoAttached]
+   ,[vehnRecUserID]
+   ,[vehdDtCreated]
+   ,[vehnModifyUserID]
+   ,[vehdDtModified]
+   ,[vehnLevelNo]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,CASE
+			WHEN p1.plnnPlaintiffID IS NOT NULL OR
+				p2.plnnPlaintiffID IS NOT NULL
+				THEN 1
+			ELSE 0
+		END
+	   ,CASE
+			WHEN d1.defnDefendentID IS NOT NULL
+				THEN d1.defnDefendentID
+			WHEN d2.defnDefendentID IS NOT NULL
+				THEN d2.defnDefendentID
+			WHEN p1.plnnPlaintiffID IS NOT NULL
+				THEN p1.plnnPlaintiffID
+			WHEN p2.plnnPlaintiffID IS NOT NULL
+				THEN p2.plnnPlaintiffID
+		END
+	   ,CASE
+			WHEN i4.cinnContactID IS NOT NULL
+				THEN i4.cinnContactID
+			WHEN o4.connContactID IS NOT NULL
+				THEN o4.connContactID
+		END
+	   ,CASE
+			WHEN i4.cinnContactID IS NOT NULL
+				THEN 1
+			WHEN o4.connContactID IS NOT NULL
+				THEN 2
+		END
+	   ,CASE
+			WHEN i3.cinnContactID IS NOT NULL
+				THEN i3.cinnContactID
+			WHEN o3.connContactID IS NOT NULL
+				THEN o3.connContactID
+		END
+	   ,CASE
+			WHEN i3.cinnContactID IS NOT NULL
+				THEN 1
+			WHEN o3.connContactID IS NOT NULL
+				THEN 2
+		END
+	   ,CASE
+			WHEN i5.cinnContactID IS NOT NULL
+				THEN i5.cinnContactID
+			WHEN o5.connContactID IS NOT NULL
+				THEN o5.connContactID
+		END
+	   ,CASE
+			WHEN i5.cinnContactID IS NOT NULL
+				THEN 1
+			WHEN o5.connContactID IS NOT NULL
+				THEN 2
+		END
+	   ,DRIVERSLICENSENUMBER
+	   ,sttnStateID
+	   ,NULL
+	   ,vmknMakeID
+	   ,MODELYEAR
+	   ,vmdnModelID
+	   ,NULL
+	   ,PLATENUMBER
+	   ,COLOR
+	   ,sttnStateID
+	   ,VIN
+	   ,NULL
+	   ,CASE ISLEASED
+			WHEN 'F'
+				THEN 0
+			WHEN 'T'
+				THEN 1
+		END
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,ISNULL(CONVERT(VARCHAR(4000), comment), '') +
+		CASE
+			WHEN ISNULL(model, '') <> ''
+				THEN ' ' + 'Model: ' + ' ' + model
+		END + ISNULL(CONVERT(VARCHAR(6000), LTRIM(REPLACE(REPLACE(REPLACE(dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', ''), '}', ''), CHAR(13), ''), CHAR(10), ''))), '')
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM [WilliamPagerSaga].[dbo].[LW_VEHICLE] a
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN b
+		ON a.assignid = b.ASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.MATTER c
+		ON c.MATTERID = b.MATTERID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN d
+		ON a.REGISTEREDOWNERID = d.ASSIGNID
+			AND a.REGISTEREDOWNERID IS NOT NULL
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN e
+		ON a.TITLEOWNERID = e.ASSIGNID
+			AND a.TITLEOWNERID IS NOT NULL
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN f
+		ON a.OPERATORID = f.ASSIGNID
+			AND a.OPERATORID IS NOT NULL
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON LTRIM(RTRIM(i1.cinsGrade)) = b.ENTITYID
+			AND b.PARTYTYPE = 2
+	LEFT JOIN sma_MST_OrgContacts o1
+		ON LTRIM(RTRIM(o1.connLevelNo)) = b.ENTITYID
+			AND b.PARTYTYPE = 2
+	LEFT JOIN sma_TRN_Defendants d1
+		ON i1.cinnContactID = d1.defnContactID
+			AND d1.defnContactCtgID = 1
+			AND d1.defnCaseID = casnCaseID
+	LEFT JOIN sma_TRN_Defendants d2
+		ON o1.connContactID = d2.defnContactID
+			AND d2.defnContactCtgID = 2
+			AND d2.defnCaseID = casnCaseID
+	LEFT JOIN sma_MST_IndvContacts i2
+		ON LTRIM(RTRIM(i2.cinsGrade)) = b.ENTITYID
+			AND b.PARTYTYPE = 1
+	LEFT JOIN sma_MST_OrgContacts o2
+		ON LTRIM(RTRIM(o2.connLevelNo)) = b.ENTITYID
+			AND b.PARTYTYPE = 1
+	LEFT JOIN sma_TRN_Plaintiff p1
+		ON i2.cinnContactID = p1.plnnContactID
+			AND p1.plnnContactCtg = 1
+			AND p1.plnnCaseID = casnCaseID
+	LEFT JOIN sma_TRN_Plaintiff p2
+		ON o2.connContactID = p2.plnnContactID
+			AND p2.plnnContactCtg = 2
+			AND p2.plnnCaseID = casnCaseID
+	LEFT JOIN sma_MST_IndvContacts i3
+		ON LTRIM(RTRIM(i3.cinsGrade)) = d.ENTITYID
+	LEFT JOIN sma_MST_OrgContacts o3
+		ON LTRIM(RTRIM(o3.connLevelNo)) = d.ENTITYID
+	LEFT JOIN sma_MST_IndvContacts i4
+		ON LTRIM(RTRIM(i4.cinsGrade)) = e.ENTITYID
+	LEFT JOIN sma_MST_OrgContacts o4
+		ON LTRIM(RTRIM(o4.connLevelNo)) = e.ENTITYID
+	LEFT JOIN sma_MST_IndvContacts i5
+		ON LTRIM(RTRIM(i5.cinsGrade)) = f.ENTITYID
+	LEFT JOIN sma_MST_OrgContacts o5
+		ON LTRIM(RTRIM(o5.connLevelNo)) = f.ENTITYID
+	LEFT JOIN sma_MST_States
+		ON sttsCode = [state]
+	LEFT JOIN [sma_MST_VehicleMake]
+		ON a.MAKE = vmksDscrptn
+	LEFT JOIN [sma_MST_VehicleModels]
+		ON a.model = [vmdsModelDscrptn]
+			AND vmdnMakeID = vmknMakeID
+	LEFT JOIN WilliamPagerSaga.dbo.NOTE n
+		ON n.NOTEID = VIOLATIONHISTORYNOTEID
 
-go
+GO

@@ -1,67 +1,250 @@
+USE WilliamPagerSA
 
-Alter Table [sma_MST_NoteTypes]
-Alter column [nttsDscrptn] varchar(200)
+ALTER TABLE [sma_MST_NoteTypes]
+ALTER COLUMN [nttsDscrptn] VARCHAR(200)
 INSERT INTO [sma_MST_NoteTypes]
-([nttsCode],[nttsDscrptn],[nttsNoteText],[nttnRecUserID],[nttdDtCreated])
-SELECT [CODE],[DESCRIPTION],[DESCRIPTION],368,GETDATE()FROM [WilliamPagerSaga].[dbo].[NOTETYPE]   
-where  [DESCRIPTION] not in (select [nttsDscrptn] from [sma_MST_NoteTypes])
+	(
+	[nttsCode]
+   ,[nttsDscrptn]
+   ,[nttsNoteText]
+   ,[nttnRecUserID]
+   ,[nttdDtCreated]
+	)
+	SELECT
+		[CODE]
+	   ,[DESCRIPTION]
+	   ,[DESCRIPTION]
+	   ,368
+	   ,GETDATE()
+	FROM [WilliamPagerSaga].[dbo].[NOTETYPE]
+	WHERE [DESCRIPTION] NOT IN (
+			SELECT
+				[nttsDscrptn]
+			FROM [sma_MST_NoteTypes]
+		)
 
 
-alter table [sma_TRN_Notes] disable trigger all
+ALTER TABLE [sma_TRN_Notes] DISABLE TRIGGER ALL
 --Truncate table sma_trn_notes
 INSERT INTO [sma_TRN_Notes]
-([notnCaseID],[notnNoteTypeID],[notmDescription],[notmPlainText],[notnContactCtgID],[notnContactId],[notsPriority],[notnFormID],[notnRecUserID],[notdDtCreated],[notnModifyUserID],[notdDtModified],[notnLevelNo],[notdDtInserted],notnSubject)
-select casnCaseID,nttnNoteTypeID,DESCRIPTION,isnull(note,''),[1],[2],[3],[4],[9],[5],usrnUserID,DATEREVISED,[6],[7],substring(DESCRIPTION,0,200) from (
-Select  casnCaseID,nttnNoteTypeID,a.DESCRIPTION, convert(varchar(max),a.notes) as Note,case when e.cinnContactID IS NOT null then 1 when f.connContactid IS not null then 2 end as [1],case when e.cinnContactID IS NOT null then e.cinnContactID when f.connContactid IS not null then f.connContactID end as [2]
-,'Normal' as [3],a.noteid as [4],case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end as [9],case (a.datecreated) when null then GETDATE() else (a.datecreated) end as [5],(u2.usrnuserid),(a.daterevised),'' as [6],
-case (a.datecreated) when null then GETDATE() else (a.datecreated) end as [7]
-FROM [WilliamPagerSaga].[dbo].[NOTE] a
-Left Join [WilliamPagerSaga].[dbo].NTMATAS b on a.NOTEID=b.NOTEID
-Left Join [WilliamPagerSaga].[dbo].[Matter] c on c.MATTERID=b.MATTERID
-Left Join [WilliamPagerSaga].[dbo].[NOTETYPE] d on d.NOTETYPEID=a.NOTETYPEID
-Left Join sma_trn_cases on c.MATTERNUMBER=cassCaseNumber
-Left Join sma_MST_NoteTypes on nttsDscrptn=d.DESCRIPTION
-left join sma_MST_IndvContacts e on e.cinsGrade=a.OTHERPARTYID
-left join sma_MST_OrgContacts f on f.connLevelNo=a.OTHERPARTYID
-left join sma_MST_IndvContacts l on l.cinsGrade=a.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=a.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-where casnCaseID is not null)a
+	(
+	[notnCaseID]
+   ,[notnNoteTypeID]
+   ,[notmDescription]
+   ,[notmPlainText]
+   ,[notnContactCtgID]
+   ,[notnContactId]
+   ,[notsPriority]
+   ,[notnFormID]
+   ,[notnRecUserID]
+   ,[notdDtCreated]
+   ,[notnModifyUserID]
+   ,[notdDtModified]
+   ,[notnLevelNo]
+   ,[notdDtInserted]
+   ,notnSubject
+	)
+	SELECT
+		casnCaseID
+	   ,nttnNoteTypeID
+	   ,DESCRIPTION
+	   ,ISNULL(note, '')
+	   ,[1]
+	   ,[2]
+	   ,[3]
+	   ,[4]
+	   ,[9]
+	   ,[5]
+	   ,usrnUserID
+	   ,DATEREVISED
+	   ,[6]
+	   ,[7]
+	   ,SUBSTRING(DESCRIPTION, 0, 200)
+	FROM (
+		SELECT
+			casnCaseID
+		   ,nttnNoteTypeID
+		   ,a.DESCRIPTION
+		   ,CONVERT(VARCHAR(MAX), a.notes) AS Note
+		   ,CASE
+				WHEN e.cinnContactID IS NOT NULL
+					THEN 1
+				WHEN f.connContactid IS NOT NULL
+					THEN 2
+			END AS [1]
+		   ,CASE
+				WHEN e.cinnContactID IS NOT NULL
+					THEN e.cinnContactID
+				WHEN f.connContactid IS NOT NULL
+					THEN f.connContactID
+			END AS [2]
+		   ,'Normal' AS [3]
+		   ,a.noteid AS [4]
+		   ,CASE ISNULL((u1.usrnuserid), '')
+				WHEN ''
+					THEN 368
+				ELSE (u1.usrnuserid)
+			END AS [9]
+		   ,CASE (a.datecreated)
+				WHEN NULL
+					THEN GETDATE()
+				ELSE (a.datecreated)
+			END AS [5]
+		   ,(u2.usrnuserid)
+		   ,(a.daterevised)
+		   ,'' AS [6]
+		   ,CASE (a.datecreated)
+				WHEN NULL
+					THEN GETDATE()
+				ELSE (a.datecreated)
+			END AS [7]
+		FROM [WilliamPagerSaga].[dbo].[Note] a
+		LEFT JOIN [WilliamPagerSaga].[dbo].NTMATAS b
+			ON a.NOTEID = b.NOTEID
+		LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] c
+			ON c.MATTERID = b.MATTERID
+		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTETYPE] d
+			ON d.NOTETYPEID = a.NOTETYPEID
+		LEFT JOIN sma_trn_cases
+			ON c.MATTERNUMBER = cassCaseNumber
+		LEFT JOIN sma_MST_NoteTypes
+			ON nttsDscrptn = d.DESCRIPTION
+		LEFT JOIN sma_MST_IndvContacts e
+			ON e.cinsGrade = a.OTHERPARTYID
+		LEFT JOIN sma_MST_OrgContacts f
+			ON f.connLevelNo = a.OTHERPARTYID
+		LEFT JOIN sma_MST_IndvContacts l
+			ON l.cinsGrade = a.CREATORID
+		LEFT JOIN sma_mst_users u1
+			ON u1.usrnContactID = l.cinnContactID
+		LEFT JOIN sma_MST_IndvContacts m
+			ON m.cinsGrade = a.REVISORID
+		LEFT JOIN sma_mst_users u2
+			ON u2.usrnContactID = m.cinnContactID
+		WHERE casnCaseID IS NOT NULL
+	) a
 
 --Update sma_TRN_Notes 
 --set notmPlainText =convert(varchar(max),ltrim(replace(
 --       dbo.RegExReplace(notmPlainText,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
 --      ,'}','')
-    
+
 --      )) 
 
 INSERT INTO [sma_MST_NoteTypes]
-([nttsCode],[nttsDscrptn],[nttsNoteText],[nttnRecUserID],[nttdDtCreated])
-SELECT 'NFEXMRSLT','No fault Exam Results','No fault Exam Results',368,GETDATE()
+	(
+	[nttsCode]
+   ,[nttsDscrptn]
+   ,[nttsNoteText]
+   ,[nttnRecUserID]
+   ,[nttdDtCreated]
+	)
+	SELECT
+		'NFEXMRSLT'
+	   ,'No fault Exam Results'
+	   ,'No fault Exam Results'
+	   ,368
+	   ,GETDATE()
 
 
 INSERT INTO [sma_TRN_Notes]
-([notnCaseID],[notnNoteTypeID],[notmDescription],[notmPlainText],[notnContactCtgID],[notnContactId],[notsPriority],[notnFormID],[notnRecUserID],[notdDtCreated],[notnModifyUserID],[notdDtModified],[notnLevelNo],[notdDtInserted],notnSubject)
-select casnCaseID,nttnNoteTypeID,DESCRIPTION,isnull(note,''),[1],[2],[3],[4],[9],[5],usrnUserID,DATEREVISED,[6],[7],DESCRIPTION from (
-Select  casnCaseID,nttnNoteTypeID,a.DESCRIPTION, convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(a.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')
-     
-      )) as Note,case when e.cinnContactID IS NOT null then 1 when f.connContactid IS not null then 2 end as [1],case when e.cinnContactID IS NOT null then e.cinnContactID when f.connContactid IS not null then f.connContactID end as [2]
-,'Normal' as [3],a.noteid as [4],case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end as [9],case (a.datecreated) when null then GETDATE() else (a.datecreated) end as [5],(u2.usrnuserid),(a.daterevised),'' as [6],
-case (a.datecreated) when null then GETDATE() else (a.datecreated) end as [7]
-FROM [WilliamPagerSaga].[dbo].[NOTE] a
-Left Join [WilliamPagerSaga].[dbo].[Matter] c on c.STATUSCOMMENTSID=a.NOTEID
-Left Join sma_trn_cases on c.MATTERNUMBER=cassCaseNumber
-Left Join sma_MST_NoteTypes on nttsDscrptn='No fault Exam Results'
-left join sma_MST_IndvContacts e on e.cinsGrade=a.OTHERPARTYID
-left join sma_MST_OrgContacts f on f.connLevelNo=a.OTHERPARTYID
-left join sma_MST_IndvContacts l on l.cinsGrade=a.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=a.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-where a.NOTEID is not null and casnCaseID is not null)a
+	(
+	[notnCaseID]
+   ,[notnNoteTypeID]
+   ,[notmDescription]
+   ,[notmPlainText]
+   ,[notnContactCtgID]
+   ,[notnContactId]
+   ,[notsPriority]
+   ,[notnFormID]
+   ,[notnRecUserID]
+   ,[notdDtCreated]
+   ,[notnModifyUserID]
+   ,[notdDtModified]
+   ,[notnLevelNo]
+   ,[notdDtInserted]
+   ,notnSubject
+	)
+	SELECT
+		casnCaseID
+	   ,nttnNoteTypeID
+	   ,DESCRIPTION
+	   ,ISNULL(note, '')
+	   ,[1]
+	   ,[2]
+	   ,[3]
+	   ,[4]
+	   ,[9]
+	   ,[5]
+	   ,usrnUserID
+	   ,DATEREVISED
+	   ,[6]
+	   ,[7]
+	   ,DESCRIPTION
+	FROM (
+		SELECT
+			casnCaseID
+		   ,nttnNoteTypeID
+		   ,a.DESCRIPTION
+		   ,CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
+			dbo.RegExReplace(a.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+			, '}', '')
+
+			)) AS Note
+		   ,CASE
+				WHEN e.cinnContactID IS NOT NULL
+					THEN 1
+				WHEN f.connContactid IS NOT NULL
+					THEN 2
+			END AS [1]
+		   ,CASE
+				WHEN e.cinnContactID IS NOT NULL
+					THEN e.cinnContactID
+				WHEN f.connContactid IS NOT NULL
+					THEN f.connContactID
+			END AS [2]
+		   ,'Normal' AS [3]
+		   ,a.noteid AS [4]
+		   ,CASE ISNULL((u1.usrnuserid), '')
+				WHEN ''
+					THEN 368
+				ELSE (u1.usrnuserid)
+			END AS [9]
+		   ,CASE (a.datecreated)
+				WHEN NULL
+					THEN GETDATE()
+				ELSE (a.datecreated)
+			END AS [5]
+		   ,(u2.usrnuserid)
+		   ,(a.daterevised)
+		   ,'' AS [6]
+		   ,CASE (a.datecreated)
+				WHEN NULL
+					THEN GETDATE()
+				ELSE (a.datecreated)
+			END AS [7]
+		FROM [WilliamPagerSaga].[dbo].[Note] a
+		LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] c
+			ON c.STATUSCOMMENTSID = a.NOTEID
+		LEFT JOIN sma_trn_cases
+			ON c.MATTERNUMBER = cassCaseNumber
+		LEFT JOIN sma_MST_NoteTypes
+			ON nttsDscrptn = 'No fault Exam Results'
+		LEFT JOIN sma_MST_IndvContacts e
+			ON e.cinsGrade = a.OTHERPARTYID
+		LEFT JOIN sma_MST_OrgContacts f
+			ON f.connLevelNo = a.OTHERPARTYID
+		LEFT JOIN sma_MST_IndvContacts l
+			ON l.cinsGrade = a.CREATORID
+		LEFT JOIN sma_mst_users u1
+			ON u1.usrnContactID = l.cinnContactID
+		LEFT JOIN sma_MST_IndvContacts m
+			ON m.cinsGrade = a.REVISORID
+		LEFT JOIN sma_mst_users u2
+			ON u2.usrnContactID = m.cinnContactID
+		WHERE a.NOTEID IS NOT NULL
+			AND casnCaseID IS NOT NULL
+	) a
 
 --Delete from sma_TRN_Notes 
 --where notnNoteID not in (
@@ -72,39 +255,94 @@ where a.NOTEID is not null and casnCaseID is not null)a
 --Group by notncaseid,notnNoteTypeID,ltrim(rtrim(convert(varchar(max),notmPlainText))),isnull(cinsLastName,'')+ISNULL(cinsfirstname,''),convert(date,notdDtCreated
 
 INSERT INTO [sma_MST_NoteTypes]
-([nttsCode],[nttsDscrptn],[nttsNoteText],[nttnRecUserID],[nttdDtCreated])
-SELECT 'QUKNOTES','Quick Note','Quick Note',368,GETDATE()
+	(
+	[nttsCode]
+   ,[nttsDscrptn]
+   ,[nttsNoteText]
+   ,[nttnRecUserID]
+   ,[nttdDtCreated]
+	)
+	SELECT
+		'QUKNOTES'
+	   ,'Quick Note'
+	   ,'Quick Note'
+	   ,368
+	   ,GETDATE()
 
-Declare @NoteTypeID int
-Select @NoteTypeID=nttnNoteTypeID from sma_MST_NoteTypes where nttsNoteText='Quick Note'
+DECLARE @NoteTypeID INT
+SELECT
+	@NoteTypeID = nttnNoteTypeID
+FROM sma_MST_NoteTypes
+WHERE nttsNoteText = 'Quick Note'
 
 INSERT INTO [sma_TRN_Notes]
-([notnCaseID],[notnNoteTypeID],[notmDescription],[notmPlainText],[notnContactCtgID],[notnContactId],[notsPriority],[notnFormID],[notnRecUserID],[notdDtCreated],[notnModifyUserID],[notdDtModified],[notnLevelNo],[notdDtInserted],notnSubject)
+	(
+	[notnCaseID]
+   ,[notnNoteTypeID]
+   ,[notmDescription]
+   ,[notmPlainText]
+   ,[notnContactCtgID]
+   ,[notnContactId]
+   ,[notsPriority]
+   ,[notnFormID]
+   ,[notnRecUserID]
+   ,[notdDtCreated]
+   ,[notnModifyUserID]
+   ,[notdDtModified]
+   ,[notnLevelNo]
+   ,[notdDtInserted]
+   ,notnSubject
+	)
 
-Select distinct casncaseid,@NoteTypeID,DESCRIPTION,convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')      
-      )) ,null,
-null,'Normal',n.noteid,usrnUserID,n.DATECREATED,null,n.DATEREVISED,'',n.DATECREATED,DESCRIPTION
-from  sma_trn_cases  
-left join WilliamPagerSaga.dbo.MATTER m on MATTERNUMBER=cassCaseNumber
-Left Join [WilliamPagerSaga].[dbo].[LW_MATTER] a on a.MATTERID=m.MATTERID
-left join WilliamPagerSaga.dbo.NOTE n on n.NOTEID=a.ALERTNOTEID
-left join sma_MST_IndvContacts l on l.cinsGrade=n.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-where n.NOTEID is not null
+	SELECT DISTINCT
+		casncaseid
+	   ,@NoteTypeID
+	   ,DESCRIPTION
+	   ,CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
+		dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+		, '}', '')
+		))
+	   ,NULL
+	   ,NULL
+	   ,'Normal'
+	   ,n.noteid
+	   ,usrnUserID
+	   ,n.DATECREATED
+	   ,NULL
+	   ,n.DATEREVISED
+	   ,''
+	   ,n.DATECREATED
+	   ,DESCRIPTION
+	FROM sma_trn_cases
+	LEFT JOIN WilliamPagerSaga.dbo.MATTER m
+		ON MATTERNUMBER = cassCaseNumber
+	LEFT JOIN [WilliamPagerSaga].[dbo].[LW_MATTER] a
+		ON a.MATTERID = m.MATTERID
+	LEFT JOIN WilliamPagerSaga.dbo.NOTE n
+		ON n.NOTEID = a.ALERTNOTEID
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = n.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	WHERE n.NOTEID IS NOT NULL
 
 
-delete from sma_trn_notes where notnFormID in (select noteid From [WilliamPagerSaga].dbo.LW_log l)
+DELETE FROM sma_trn_notes
+WHERE notnFormID IN (
+		SELECT
+			noteid
+		FROM [WilliamPagerSaga].dbo.LW_log l
+	)
 
-update sma_trn_notes set notnFormID=null
-alter table [sma_TRN_Notes] enable trigger all
-go
-alter table [sma_TRN_Notes] disable trigger all
-Update sma_TRN_Notes 
-set notmPlainText =convert(varchar(max),ltrim(replace(
-       dbo.RegExReplace(notmPlainText,'({\\)(.+?)(})|(\\)(.+?)(\b)','')
-      ,'}','')
-    
-      )) 
-	  alter table [sma_TRN_Notes] enable trigger all
+UPDATE sma_trn_notes
+SET notnFormID = NULL
+ALTER TABLE [sma_TRN_Notes] ENABLE TRIGGER ALL
+GO
+ALTER TABLE [sma_TRN_Notes] DISABLE TRIGGER ALL
+UPDATE sma_TRN_Notes
+SET notmPlainText = CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
+dbo.RegExReplace(notmPlainText, '({\\)(.+?)(})|(\\)(.+?)(\b)', '')
+, '}', '')
+
+))
+ALTER TABLE [sma_TRN_Notes] ENABLE TRIGGER ALL

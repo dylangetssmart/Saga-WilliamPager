@@ -1,61 +1,281 @@
-Alter table [sma_TRN_SOLs] Disable Trigger all
+USE WilliamPagerSA
+
+ALTER TABLE [sma_TRN_SOLs] DISABLE TRIGGER ALL
 
 INSERT INTO [sma_TRN_SOLs]
-([solnCaseID],[solnSOLTypeID],[soldSOLDate],[soldToProcessServerDt],[soldSnCFilingDate],[soldServiceDate],[soldLastDtToServe],[solnServiceMethodID],[solnMailingReqd]
-,[soldLastDateToMail],[soldMailedDate],[solnFileAffidavitReqd],[soldLastDateToFile],[soldFiledDate],[soldProcessServerDt],[solnDefendentID],[soldDefAnsDueDt]
-,[soldRcvdDate],[solsComments],[solnRecUserID],[soldDtCreated],[solnModifyUserID],[soldDtModified],[solnLevelNo],[soldLastDtFileSc],[soldDateComplied]
-,[solsType],[solbIsOld],[intCriticalDeadline],[soldComments])
-Select distinct casnCaseID,sldnSOLdetID,case when date1 between '1/1/1900' and '12/31/2079' then DATE1 end,null,null,null,null,null,null
-,null,null,'',null,null,null,defndefendentid,null
-,null,title,case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end,case (a.datecreated) when null then GETDATE() else (a.datecreated) end,case isnull((u2.usrnuserid),'') when '' then 368 else (u2.usrnuserid) end,case (a.daterevised) when null then GETDATE() else (a.daterevised) end,null,case when date1 between '1/1/1900' and '12/31/2079' then DATE1 end,case when   DATE2 between'1/1/1900' and '12/31/2079' then DATE2 else null end date2
-,'D','','',isnull(convert(varchar(4000),a.NOTES),'')
-from [WilliamPagerSaga].dbo.MRULASS a
-Left join  [WilliamPagerSaga].dbo.MATTER b on a.MATTERID=b.MATTERID
-Left join sma_trn_cases  on cassCaseNumber=MATTERNUMBER
-left join sma_trn_defendants on defncaseid=casncaseid and defbisprimary=1
-left join sma_MST_SOLDetails on sldnCaseTypeID=casnOrgCaseTypeID and casnState=sldnStateID and defnsubrole=sldndefrole and sldnsoltypeid<>37
-left join sma_MST_IndvContacts l on l.cinsGrade=a.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=a.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-Where casncaseid is not null  and a.type=2 and a.title  like '%statute%'  
-order by DATE2 desc
+	(
+	[solnCaseID]
+   ,[solnSOLTypeID]
+   ,[soldSOLDate]
+   ,[soldToProcessServerDt]
+   ,[soldSnCFilingDate]
+   ,[soldServiceDate]
+   ,[soldLastDtToServe]
+   ,[solnServiceMethodID]
+   ,[solnMailingReqd]
+   ,[soldLastDateToMail]
+   ,[soldMailedDate]
+   ,[solnFileAffidavitReqd]
+   ,[soldLastDateToFile]
+   ,[soldFiledDate]
+   ,[soldProcessServerDt]
+   ,[solnDefendentID]
+   ,[soldDefAnsDueDt]
+   ,[soldRcvdDate]
+   ,[solsComments]
+   ,[solnRecUserID]
+   ,[soldDtCreated]
+   ,[solnModifyUserID]
+   ,[soldDtModified]
+   ,[solnLevelNo]
+   ,[soldLastDtFileSc]
+   ,[soldDateComplied]
+   ,[solsType]
+   ,[solbIsOld]
+   ,[intCriticalDeadline]
+   ,[soldComments]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,sldnSOLdetID
+	   ,CASE
+			WHEN date1 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN DATE1
+		END
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,defndefendentid
+	   ,NULL
+	   ,NULL
+	   ,title
+	   ,CASE ISNULL((u1.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u1.usrnuserid)
+		END
+	   ,CASE (a.datecreated)
+			WHEN NULL
+				THEN GETDATE()
+			ELSE (a.datecreated)
+		END
+	   ,CASE ISNULL((u2.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u2.usrnuserid)
+		END
+	   ,CASE (a.daterevised)
+			WHEN NULL
+				THEN GETDATE()
+			ELSE (a.daterevised)
+		END
+	   ,NULL
+	   ,CASE
+			WHEN date1 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN DATE1
+		END
+	   ,CASE
+			WHEN date2 BETWEEN '1/1/1900' AND '12/31/2079'
+				THEN date2
+			ELSE NULL
+		END date2
+	   ,'D'
+	   ,''
+	   ,''
+	   ,ISNULL(CONVERT(VARCHAR(4000), a.NOTES), '')
+	FROM [WilliamPagerSaga].dbo.MRULASS a
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER b
+		ON a.MATTERID = b.MATTERID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_trn_defendants
+		ON defncaseid = casncaseid
+			AND defbisprimary = 1
+	LEFT JOIN sma_MST_SOLDetails
+		ON sldnCaseTypeID = casnOrgCaseTypeID
+			AND casnState = sldnStateID
+			AND defnsubrole = sldndefrole
+			AND sldnsoltypeid <> 37
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = a.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts m
+		ON m.cinsGrade = a.REVISORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = m.cinnContactID
+	WHERE casncaseid IS NOT NULL
+		AND a.type = 2
+		AND a.title LIKE '%statute%'
+	ORDER BY date2 DESC
 INSERT INTO [sma_TRN_SOLs]
-([solnCaseID],[solnSOLTypeID],[soldSOLDate],[soldToProcessServerDt],[soldSnCFilingDate],[soldServiceDate],[soldLastDtToServe],[solnServiceMethodID],[solnMailingReqd]
-,[soldLastDateToMail],[soldMailedDate],[solnFileAffidavitReqd],[soldLastDateToFile],[soldFiledDate],[soldProcessServerDt],[solnDefendentID],[soldDefAnsDueDt]
-,[soldRcvdDate],[solsComments],[solnRecUserID],[soldDtCreated],[solnModifyUserID],[soldDtModified],[solnLevelNo],[soldLastDtFileSc],[soldDateComplied]
-,[solsType],[solbIsOld],[intCriticalDeadline],[soldComments])
-Select distinct casnCaseID,sldnSOLdetID,case when isdate(DATE1)= 1  and YEAR(DATE1)between 1900 and 2050  then DATE1 else null end ,null,null,null,null,null,null
-,null,null,'',null,null,null,plnnPlaintiffID,null
-,null,title,case isnull((u1.usrnuserid),'') when '' then 368 else (u1.usrnuserid) end,case (a.datecreated) when null then GETDATE() else (a.datecreated) end,case isnull((u2.usrnuserid),'') when '' then 368 else (u2.usrnuserid) end,case (a.daterevised) when null then GETDATE() else (a.daterevised) end,null,case when isdate(DATE1)= 1  and YEAR(DATE1)between 1900 and 2050  then DATE1 else null end,case when isdate(DATE2)= 1  and YEAR(DATE2)between 1900 and 2050  then DATE2 else null end
-,'P','','',isnull(convert(varchar(4000),a.NOTES),'')
-from [WilliamPagerSaga].dbo.MRULASS a
-Left join  [WilliamPagerSaga].dbo.MATTER b on a.MATTERID=b.MATTERID
-Left join sma_trn_cases  on cassCaseNumber=MATTERNUMBER
-left join sma_trn_plaintiff on plnncaseid=casncaseid and plnbisprimary=1
-left join sma_MST_SOLDetails on sldnCaseTypeID=casnOrgCaseTypeID and casnState=sldnStateID and plnnrole=sldndefrole and sldnsoltypeid=14
-left join sma_MST_IndvContacts l on l.cinsGrade=a.CREATORID
-left join sma_mst_users u1 on u1.usrnContactID=l.cinnContactID
-left join sma_MST_IndvContacts m on m.cinsGrade=a.REVISORID
-left join sma_mst_users u2 on u2.usrnContactID=m.cinnContactID
-Where casncaseid is not null  and a.type=2 and a.title  like 'no fault%'
+	(
+	[solnCaseID]
+   ,[solnSOLTypeID]
+   ,[soldSOLDate]
+   ,[soldToProcessServerDt]
+   ,[soldSnCFilingDate]
+   ,[soldServiceDate]
+   ,[soldLastDtToServe]
+   ,[solnServiceMethodID]
+   ,[solnMailingReqd]
+   ,[soldLastDateToMail]
+   ,[soldMailedDate]
+   ,[solnFileAffidavitReqd]
+   ,[soldLastDateToFile]
+   ,[soldFiledDate]
+   ,[soldProcessServerDt]
+   ,[solnDefendentID]
+   ,[soldDefAnsDueDt]
+   ,[soldRcvdDate]
+   ,[solsComments]
+   ,[solnRecUserID]
+   ,[soldDtCreated]
+   ,[solnModifyUserID]
+   ,[soldDtModified]
+   ,[solnLevelNo]
+   ,[soldLastDtFileSc]
+   ,[soldDateComplied]
+   ,[solsType]
+   ,[solbIsOld]
+   ,[intCriticalDeadline]
+   ,[soldComments]
+	)
+	SELECT DISTINCT
+		casnCaseID
+	   ,sldnSOLdetID
+	   ,CASE
+			WHEN ISDATE(DATE1) = 1 AND
+				YEAR(DATE1) BETWEEN 1900 AND 2050
+				THEN DATE1
+			ELSE NULL
+		END
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,plnnPlaintiffID
+	   ,NULL
+	   ,NULL
+	   ,title
+	   ,CASE ISNULL((u1.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u1.usrnuserid)
+		END
+	   ,CASE (a.datecreated)
+			WHEN NULL
+				THEN GETDATE()
+			ELSE (a.datecreated)
+		END
+	   ,CASE ISNULL((u2.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u2.usrnuserid)
+		END
+	   ,CASE (a.daterevised)
+			WHEN NULL
+				THEN GETDATE()
+			ELSE (a.daterevised)
+		END
+	   ,NULL
+	   ,CASE
+			WHEN ISDATE(DATE1) = 1 AND
+				YEAR(DATE1) BETWEEN 1900 AND 2050
+				THEN DATE1
+			ELSE NULL
+		END
+	   ,CASE
+			WHEN ISDATE(DATE2) = 1 AND
+				YEAR(DATE2) BETWEEN 1900 AND 2050
+				THEN DATE2
+			ELSE NULL
+		END
+	   ,'P'
+	   ,''
+	   ,''
+	   ,ISNULL(CONVERT(VARCHAR(4000), a.NOTES), '')
+	FROM [WilliamPagerSaga].dbo.MRULASS a
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER b
+		ON a.MATTERID = b.MATTERID
+	LEFT JOIN sma_trn_cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_trn_plaintiff
+		ON plnncaseid = casncaseid
+			AND plnbisprimary = 1
+	LEFT JOIN sma_MST_SOLDetails
+		ON sldnCaseTypeID = casnOrgCaseTypeID
+			AND casnState = sldnStateID
+			AND plnnrole = sldndefrole
+			AND sldnsoltypeid = 14
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = a.CREATORID
+	LEFT JOIN sma_mst_users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts m
+		ON m.cinsGrade = a.REVISORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = m.cinnContactID
+	WHERE casncaseid IS NOT NULL
+		AND a.type = 2
+		AND a.title LIKE 'no fault%'
 
-Update a 
-set [solnSOLTypeID]=sldnSOLdetID
-From sma_trn_sols a
-left join sma_trn_cases on casncaseid=solncaseid
-outer apply(select top 1 sldnSOLdetID from sma_mst_soldetails where sldncasetypeid=casnorgcasetypeid and sldnsoltypeid<>37 and sldnstateid=26) z
-where [solnSOLTypeID] is null and solstype='d'
+UPDATE a
+SET [solnSOLTypeID] = sldnSOLdetID
+FROM sma_trn_sols a
+LEFT JOIN sma_trn_cases
+	ON casncaseid = solncaseid
+OUTER APPLY (
+	SELECT TOP 1
+		sldnSOLdetID
+	FROM sma_mst_soldetails
+	WHERE sldncasetypeid = casnorgcasetypeid
+		AND sldnsoltypeid <> 37
+		AND sldnstateid = 26
+) z
+WHERE [solnSOLTypeID] IS NULL
+AND solstype = 'd'
 
-Update a 
-set [solnSOLTypeID]=sldnSOLdetID
-From sma_trn_sols a
-left join sma_trn_cases on casncaseid=solncaseid
-outer apply(select top 1 sldnSOLdetID from sma_mst_soldetails where sldncasetypeid=casnorgcasetypeid and sldnsoltypeid=14 and sldnstateid=26) z
-where [solnSOLTypeID] is null and solstype='p'
+UPDATE a
+SET [solnSOLTypeID] = sldnSOLdetID
+FROM sma_trn_sols a
+LEFT JOIN sma_trn_cases
+	ON casncaseid = solncaseid
+OUTER APPLY (
+	SELECT TOP 1
+		sldnSOLdetID
+	FROM sma_mst_soldetails
+	WHERE sldncasetypeid = casnorgcasetypeid
+		AND sldnsoltypeid = 14
+		AND sldnstateid = 26
+) z
+WHERE [solnSOLTypeID] IS NULL
+AND solstype = 'p'
 
-Delete from sma_TRN_SOLs where solnSOLID not in (
-select MIN(solnSOLID) from sma_trn_sols
-Group by soldSOLDate,solnCaseID)
-Alter table [sma_TRN_SOLs] Enable Trigger all
+DELETE FROM sma_TRN_SOLs
+WHERE solnSOLID NOT IN (
+		SELECT
+			MIN(solnSOLID)
+		FROM sma_trn_sols
+		GROUP BY soldSOLDate
+				,solnCaseID
+	)
+ALTER TABLE [sma_TRN_SOLs] ENABLE TRIGGER ALL
 

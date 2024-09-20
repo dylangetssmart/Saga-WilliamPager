@@ -1,164 +1,420 @@
-alter table [sma_MST_OrgContacts] disable trigger all
-Update sma_MST_OrgContacts
-set connContactTypeID=12
-where connContactID in (
-Select distinct lwfnLawFirmContactID from sma_TRN_LawFirms)
+USE WilliamPagerSA
 
-Alter table sma_mst_address disable trigger all
-Update sma_mst_address set addbPrimary=0 where addnAddressID
-not in(
-select min(addnAddressID) from sma_mst_address 
-where addbPrimary=1
-group by addnContactID,addnContactCtgID) and addbPrimary=1
+ALTER TABLE [sma_MST_OrgContacts] DISABLE TRIGGER ALL
+UPDATE sma_MST_OrgContacts
+SET connContactTypeID = 12
+WHERE connContactID IN (
+	SELECT DISTINCT
+		lwfnLawFirmContactID
+	FROM sma_TRN_LawFirms
+)
 
-update sma_mst_address set addbIsMailing=0 where addnAddressID
-not in(
-select min(addnAddressID) from sma_mst_address 
-where addbIsMailing=1
-group by addnContactID,addnContactCtgID) and addbIsMailing=1
-Alter table sma_mst_address enable trigger all
+ALTER TABLE sma_mst_address DISABLE TRIGGER ALL
+UPDATE sma_mst_address
+SET addbPrimary = 0
+WHERE addnAddressID
+NOT IN (
+	SELECT
+		MIN(addnAddressID)
+	FROM sma_mst_address
+	WHERE addbPrimary = 1
+	GROUP BY addnContactID
+			,addnContactCtgID
+)
+AND addbPrimary = 1
 
-Alter table sma_mst_contactnumbers disable trigger all
-update sma_mst_contactnumbers
-set cnnbPrimary=0
-where cnnnContactNumberID not in (
-select min(cnnnContactNumberID) from sma_MST_ContactNumbers where cnnbPrimary=1
-group by cnnnContactID,cnnnContactCtgID) and cnnbPrimary=1
-Alter table sma_mst_contactnumbers enable trigger all
+UPDATE sma_mst_address
+SET addbIsMailing = 0
+WHERE addnAddressID
+NOT IN (
+	SELECT
+		MIN(addnAddressID)
+	FROM sma_mst_address
+	WHERE addbIsMailing = 1
+	GROUP BY addnContactID
+			,addnContactCtgID
+)
+AND addbIsMailing = 1
+ALTER TABLE sma_mst_address ENABLE TRIGGER ALL
 
-alter table sma_MST_EmailWebsite disable trigger all
+ALTER TABLE sma_mst_contactnumbers DISABLE TRIGGER ALL
+UPDATE sma_mst_contactnumbers
+SET cnnbPrimary = 0
+WHERE cnnnContactNumberID NOT IN (
+	SELECT
+		MIN(cnnnContactNumberID)
+	FROM sma_MST_ContactNumbers
+	WHERE cnnbPrimary = 1
+	GROUP BY cnnnContactID
+			,cnnnContactCtgID
+)
+AND cnnbPrimary = 1
+ALTER TABLE sma_mst_contactnumbers ENABLE TRIGGER ALL
 
-Update sma_MST_EmailWebsite
-set cewbDefault=0
-where cewnEmlWSID not in (
-select min(cewnEmlWSID) from sma_MST_EmailWebsite
-where cewbDefault=1 and cewsEmailWebsiteFlag='E'
-group by cewnContactID,cewnContactCtgID) and cewbDefault=1 and cewsEmailWebsiteFlag='E'
+ALTER TABLE sma_MST_EmailWebsite DISABLE TRIGGER ALL
 
-alter table sma_MST_EmailWebsite enable trigger all
+UPDATE sma_MST_EmailWebsite
+SET cewbDefault = 0
+WHERE cewnEmlWSID NOT IN (
+	SELECT
+		MIN(cewnEmlWSID)
+	FROM sma_MST_EmailWebsite
+	WHERE cewbDefault = 1
+		AND cewsEmailWebsiteFlag = 'E'
+	GROUP BY cewnContactID
+			,cewnContactCtgID
+)
+AND cewbDefault = 1
+AND cewsEmailWebsiteFlag = 'E'
 
-Alter table sma_trn_casestaff disable trigger all
-Delete from sma_trn_casestaff
-where cssnPKID not in (
-select min(cssnpkid) from sma_TRN_CaseStaff
-where cssdToDate is null
-group by cssnStaffID,cssnCaseID)
-Alter table sma_trn_casestaff enable trigger all
+ALTER TABLE sma_MST_EmailWebsite ENABLE TRIGGER ALL
 
-Alter table sma_trn_cases disable trigger all
-Update a 
-set casdClosingDate=cssdFromDate
-from sma_TRN_CaseStatus
-left join sma_trn_cases a on cssnCaseID=casnCaseID
-where cssnStatusID in (select statusid from sma_TRN_CaseStagesStatus where StageID=5) and cssdToDt is null and casdClosingDate is null
-Alter table sma_trn_cases enable trigger all
+ALTER TABLE sma_trn_casestaff DISABLE TRIGGER ALL
+DELETE FROM sma_trn_casestaff
+WHERE cssnPKID NOT IN (
+		SELECT
+			MIN(cssnpkid)
+		FROM sma_TRN_CaseStaff
+		WHERE cssdToDate IS NULL
+		GROUP BY cssnStaffID
+				,cssnCaseID
+	)
+ALTER TABLE sma_trn_casestaff ENABLE TRIGGER ALL
 
-  INSERT INTO [sma_MST_OrgContacts]
-([conbPrimary]
-,[connContactTypeID]
-,[connContactSubCtgID]
-,[consName]
-,[conbStatus]
-,[consEINNO]
-,[consComments]
-,[connContactCtg]
-,[connRefByCtgID]
-,[connReferredBy]
-,[connContactPerson]
-,[consWorkPhone]
-,[conbPreventMailing]
-,[connRecUserID]
-,[condDtCreated]
-,[connModifyUserID]
-,[condDtModified]
-,[connLevelNo]
-,[consOtherName]
-,[saga])
-Select 1,12,'',FIRMNAME,1,'','',2,'','','','',null,368,GETDATE(),null,null,null,null,null
-From WilliamPagerSaga.dbo.SETTINGS 
+ALTER TABLE sma_trn_cases DISABLE TRIGGER ALL
+UPDATE a
+SET casdClosingDate = cssdFromDate
+FROM sma_TRN_CaseStatus
+LEFT JOIN sma_trn_cases a
+	ON cssnCaseID = casnCaseID
+WHERE cssnStatusID IN (
+	SELECT
+		statusid
+	FROM sma_TRN_CaseStagesStatus
+	WHERE StageID = 5
+)
+AND cssdToDt IS NULL
+AND casdClosingDate IS NULL
+ALTER TABLE sma_trn_cases ENABLE TRIGGER ALL
 
-alter table [sma_MST_Address] disable trigger all
+INSERT INTO [sma_MST_OrgContacts]
+	(
+	[conbPrimary]
+   ,[connContactTypeID]
+   ,[connContactSubCtgID]
+   ,[consName]
+   ,[conbStatus]
+   ,[consEINNO]
+   ,[consComments]
+   ,[connContactCtg]
+   ,[connRefByCtgID]
+   ,[connReferredBy]
+   ,[connContactPerson]
+   ,[consWorkPhone]
+   ,[conbPreventMailing]
+   ,[connRecUserID]
+   ,[condDtCreated]
+   ,[connModifyUserID]
+   ,[condDtModified]
+   ,[connLevelNo]
+   ,[consOtherName]
+   ,[saga]
+	)
+	SELECT
+		1
+	   ,12
+	   ,''
+	   ,FIRMNAME
+	   ,1
+	   ,''
+	   ,''
+	   ,2
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM WilliamPagerSaga.dbo.SETTINGS
+
+ALTER TABLE [sma_MST_Address] DISABLE TRIGGER ALL
 INSERT INTO [sma_MST_Address]
-([addnContactCtgID],[addnContactID],[addnAddressTypeID],[addsAddressType],[addsAddTypeCode],[addsAddress1],[addsAddress2],[addsAddress3],
-[addsStateCode],[addsCity],[addnZipID]
-,[addsZip],[addsCounty],[addsCountry],[addbIsResidence],[addbPrimary],[adddFromDate],[adddToDate],[addnCompanyID],
-[addsDepartment],[addsTitle],[addnContactPersonID],[addsComments]
-,[addbIsCurrent],[addbIsMailing],[addnRecUserID],[adddDtCreated],[addnModifyUserID],[adddDtModified],[addnLevelNo],[caseno],[addbDeleted],[addsZipExtn],[saga])
-Select 2,connContactID, 10 ,'Other',
- 'OTH' ,ADDRLINE1,ADDRLINE2,'',ADDRCITY,ADDRSTATE,'',ADDRZIPCODE,'','USA',
-1,1, GETDATE() ,null,null,null,null,null,'',1,
-1,
-368,GETDATE() ,null,null,'','','','',''
-From WilliamPagerSaga.dbo.SETTINGS  outer apply (select top 1 conncontactid from  sma_mst_orgcontacts where consname=FIRMNAME order by connContactID desc) o1 
-alter table [sma_MST_Address] enable trigger all
+	(
+	[addnContactCtgID]
+   ,[addnContactID]
+   ,[addnAddressTypeID]
+   ,[addsAddressType]
+   ,[addsAddTypeCode]
+   ,[addsAddress1]
+   ,[addsAddress2]
+   ,[addsAddress3]
+   ,[addsStateCode]
+   ,[addsCity]
+   ,[addnZipID]
+   ,[addsZip]
+   ,[addsCounty]
+   ,[addsCountry]
+   ,[addbIsResidence]
+   ,[addbPrimary]
+   ,[adddFromDate]
+   ,[adddToDate]
+   ,[addnCompanyID]
+   ,[addsDepartment]
+   ,[addsTitle]
+   ,[addnContactPersonID]
+   ,[addsComments]
+   ,[addbIsCurrent]
+   ,[addbIsMailing]
+   ,[addnRecUserID]
+   ,[adddDtCreated]
+   ,[addnModifyUserID]
+   ,[adddDtModified]
+   ,[addnLevelNo]
+   ,[caseno]
+   ,[addbDeleted]
+   ,[addsZipExtn]
+   ,[saga]
+	)
+	SELECT
+		2
+	   ,connContactID
+	   ,10
+	   ,'Other'
+	   ,'OTH'
+	   ,ADDRLINE1
+	   ,ADDRLINE2
+	   ,''
+	   ,ADDRCITY
+	   ,ADDRSTATE
+	   ,''
+	   ,ADDRZIPCODE
+	   ,''
+	   ,'USA'
+	   ,1
+	   ,1
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,1
+	   ,1
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	FROM WilliamPagerSaga.dbo.SETTINGS
+	OUTER APPLY (
+		SELECT TOP 1
+			conncontactid
+		FROM sma_mst_orgcontacts
+		WHERE consname = FIRMNAME
+		ORDER BY connContactID DESC
+	) o1
+ALTER TABLE [sma_MST_Address] ENABLE TRIGGER ALL
 
-Declare @addressid int
-select @addressid=addnaddressid from sma_MST_Address join sma_mst_orgcontacts on connContactID=addnContactID and addnContactCtgID=2 where consName='Leslie Elliot Krause Law Office'
-Update sma_MST_FirmInfo 
-set frinAddsID=@addressid
+DECLARE @addressid INT
+SELECT
+	@addressid = addnaddressid
+FROM sma_MST_Address
+JOIN sma_mst_orgcontacts
+	ON connContactID = addnContactID
+		AND addnContactCtgID = 2
+WHERE consName = 'Leslie Elliot Krause Law Office'
+UPDATE sma_MST_FirmInfo
+SET frinAddsID = @addressid
 
 
-  INSERT INTO [sma_MST_OrgContacts]
-([conbPrimary]
-,[connContactTypeID]
-,[connContactSubCtgID]
-,[consName]
-,[conbStatus]
-,[consEINNO]
-,[consComments]
-,[connContactCtg]
-,[connRefByCtgID]
-,[connReferredBy]
-,[connContactPerson]
-,[consWorkPhone]
-,[conbPreventMailing]
-,[connRecUserID]
-,[condDtCreated]
-,[connModifyUserID]
-,[condDtModified]
-,[connLevelNo]
-,[consOtherName]
-,[saga])
-Select 1,11,'',casscasename,1,'','',2,'','','','',null,368,GETDATE(),null,null,null,null,null
-from sma_trn_cases where casnCaseID in (select plnnCaseID from sma_TRN_Plaintiff where plnnContactCtg=1 and plnnContactID=9)
+INSERT INTO [sma_MST_OrgContacts]
+	(
+	[conbPrimary]
+   ,[connContactTypeID]
+   ,[connContactSubCtgID]
+   ,[consName]
+   ,[conbStatus]
+   ,[consEINNO]
+   ,[consComments]
+   ,[connContactCtg]
+   ,[connRefByCtgID]
+   ,[connReferredBy]
+   ,[connContactPerson]
+   ,[consWorkPhone]
+   ,[conbPreventMailing]
+   ,[connRecUserID]
+   ,[condDtCreated]
+   ,[connModifyUserID]
+   ,[condDtModified]
+   ,[connLevelNo]
+   ,[consOtherName]
+   ,[saga]
+	)
+	SELECT
+		1
+	   ,11
+	   ,''
+	   ,casscasename
+	   ,1
+	   ,''
+	   ,''
+	   ,2
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,NULL
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	FROM sma_trn_cases
+	WHERE casnCaseID IN (
+			SELECT
+				plnnCaseID
+			FROM sma_TRN_Plaintiff
+			WHERE plnnContactCtg = 1
+				AND plnnContactID = 9
+		)
 
-alter table [sma_MST_Address] disable trigger all
+ALTER TABLE [sma_MST_Address] DISABLE TRIGGER ALL
 INSERT INTO [sma_MST_Address]
-([addnContactCtgID],[addnContactID],[addnAddressTypeID],[addsAddressType],[addsAddTypeCode],[addsAddress1],[addsAddress2],[addsAddress3],
-[addsStateCode],[addsCity],[addnZipID]
-,[addsZip],[addsCounty],[addsCountry],[addbIsResidence],[addbPrimary],[adddFromDate],[adddToDate],[addnCompanyID],
-[addsDepartment],[addsTitle],[addnContactPersonID],[addsComments]
-,[addbIsCurrent],[addbIsMailing],[addnRecUserID],[adddDtCreated],[addnModifyUserID],[adddDtModified],[addnLevelNo],[caseno],[addbDeleted],[addsZipExtn],[saga])
-Select distinct 2,connContactID, 11 ,'Other',
- 'OTH' ,'','','','','','','','','',
-1,1, GETDATE() ,null,null,null,null,null,'',1,
-1,
-368,GETDATE() ,null,null,'','','','',''
-From sma_mst_orgcontacts join sma_trn_cases on cassCaseName=consName where casnCaseID in (select plnnCaseID from sma_TRN_Plaintiff where plnnContactCtg=1 and plnnContactID=9)
-alter table [sma_MST_Address] enable trigger all
+	(
+	[addnContactCtgID]
+   ,[addnContactID]
+   ,[addnAddressTypeID]
+   ,[addsAddressType]
+   ,[addsAddTypeCode]
+   ,[addsAddress1]
+   ,[addsAddress2]
+   ,[addsAddress3]
+   ,[addsStateCode]
+   ,[addsCity]
+   ,[addnZipID]
+   ,[addsZip]
+   ,[addsCounty]
+   ,[addsCountry]
+   ,[addbIsResidence]
+   ,[addbPrimary]
+   ,[adddFromDate]
+   ,[adddToDate]
+   ,[addnCompanyID]
+   ,[addsDepartment]
+   ,[addsTitle]
+   ,[addnContactPersonID]
+   ,[addsComments]
+   ,[addbIsCurrent]
+   ,[addbIsMailing]
+   ,[addnRecUserID]
+   ,[adddDtCreated]
+   ,[addnModifyUserID]
+   ,[adddDtModified]
+   ,[addnLevelNo]
+   ,[caseno]
+   ,[addbDeleted]
+   ,[addsZipExtn]
+   ,[saga]
+	)
+	SELECT DISTINCT
+		2
+	   ,connContactID
+	   ,11
+	   ,'Other'
+	   ,'OTH'
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,1
+	   ,1
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,1
+	   ,1
+	   ,368
+	   ,GETDATE()
+	   ,NULL
+	   ,NULL
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	   ,''
+	FROM sma_mst_orgcontacts
+	JOIN sma_trn_cases
+		ON cassCaseName = consName
+	WHERE casnCaseID IN (
+			SELECT
+				plnnCaseID
+			FROM sma_TRN_Plaintiff
+			WHERE plnnContactCtg = 1
+				AND plnnContactID = 9
+		)
+ALTER TABLE [sma_MST_Address] ENABLE TRIGGER ALL
 
 
-Alter table sma_trn_plaintiff disable trigger all
-Update a
-set plnnContactCtg=2,plnnContactID=connContactID,plnnAddressID=addnAddressID
-from sma_TRN_Plaintiff a
-left join sma_trn_cases on plnnCaseID=casnCaseID
-left join sma_mst_orgcontacts on consName=cassCaseName
-left join sma_mst_address on addncontactid=connContactID and addnContactCtgID=2
-where plnnContactCtg=1 and plnnContactID=9
-Alter table sma_trn_plaintiff enable trigger all
+ALTER TABLE sma_trn_plaintiff DISABLE TRIGGER ALL
+UPDATE a
+SET plnnContactCtg = 2
+   ,plnnContactID = connContactID
+   ,plnnAddressID = addnAddressID
+FROM sma_TRN_Plaintiff a
+LEFT JOIN sma_trn_cases
+	ON plnnCaseID = casnCaseID
+LEFT JOIN sma_mst_orgcontacts
+	ON consName = cassCaseName
+LEFT JOIN sma_mst_address
+	ON addncontactid = connContactID
+	AND addnContactCtgID = 2
+WHERE plnnContactCtg = 1
+AND plnnContactID = 9
+ALTER TABLE sma_trn_plaintiff ENABLE TRIGGER ALL
 
-Alter table sma_trn_cases disable trigger all
-Update a 
-set casdClosingDate=cssdFromDate
-from sma_TRN_CaseStatus 
-left join sma_trn_cases a on casnCaseID=cssnCaseID 
-where cssdToDt is null and cssnStatusID in (select statusid from sma_TRN_CaseStagesStatus where StageID=5) and casdClosingDate is null
-Alter table sma_trn_cases enable trigger all
+ALTER TABLE sma_trn_cases DISABLE TRIGGER ALL
+UPDATE a
+SET casdClosingDate = cssdFromDate
+FROM sma_TRN_CaseStatus
+LEFT JOIN sma_trn_cases a
+	ON casnCaseID = cssnCaseID
+WHERE cssdToDt IS NULL
+AND cssnStatusID IN (
+	SELECT
+		statusid
+	FROM sma_TRN_CaseStagesStatus
+	WHERE StageID = 5
+)
+AND casdClosingDate IS NULL
+ALTER TABLE sma_trn_cases ENABLE TRIGGER ALL
 
 
-Delete FROM [WorkFlowStepTemplates] where WorkFlowTemplateId=2
-Delete FROM [WorkFlowValueTemplates] where WorkFlowTemplateId=2
+DELETE FROM [WorkFlowStepTemplates]
+WHERE WorkFlowTemplateId = 2
+DELETE FROM [WorkFlowValueTemplates]
+WHERE WorkFlowTemplateId = 2
 
 --Alter table sma_TRN_Hospitals disable trigger all
 --Update a
@@ -169,12 +425,17 @@ Delete FROM [WorkFlowValueTemplates] where WorkFlowTemplateId=2
 --where hosnCaseID =p1.plnnCaseID and hosnPlaintiffID<>p1.plnnPlaintiffID and hosnPlaintiffID is not null
 --Alter table sma_TRN_Hospitals enable trigger all
 
-alter table sma_TRN_Defendants disable trigger all
-delete from sma_TRN_Defendants
-where defnDefendentID not in (
-select MIN(defnDefendentID) from sma_TRN_Defendants
-group by defnContactID,defnContactCtgID,defnCaseID)
-alter table sma_TRN_Defendants enable trigger all
+ALTER TABLE sma_TRN_Defendants DISABLE TRIGGER ALL
+DELETE FROM sma_TRN_Defendants
+WHERE defnDefendentID NOT IN (
+		SELECT
+			MIN(defnDefendentID)
+		FROM sma_TRN_Defendants
+		GROUP BY defnContactID
+				,defnContactCtgID
+				,defnCaseID
+	)
+ALTER TABLE sma_TRN_Defendants ENABLE TRIGGER ALL
 
 
 
@@ -201,7 +462,7 @@ alter table sma_TRN_Defendants enable trigger all
 
 
 --    -- Insert statements for procedure here
-	
+
 --DECLARE staff_cursor CURSOR FAST_FORWARD FOR SELECT usrnuserid from sma_mst_users where usrnUserID>368
 
 --OPEN staff_cursor 
@@ -224,4 +485,4 @@ alter table sma_TRN_Defendants enable trigger all
 
 --CLOSE staff_cursor 
 --DEALLOCATE staff_cursor
-alter table [sma_MST_OrgContacts] enable trigger all
+ALTER TABLE [sma_MST_OrgContacts] ENABLE TRIGGER ALL

@@ -1,52 +1,172 @@
+USE WilliamPagerSA
 
 INSERT INTO [sma_TRN_Settlements]
-([stlnNegotID],[stlnCaseID],[stlsUniquePartyID],[stlnPlaintiffID],[stlnStaffID],[stlnSetAmt],[stlbConsentReqd],[stlbCourtConsent],[stldCourtDtSent],[stldCourtDtRcvd]
-,[stldDocSendToClientOn],[stldDocReceivedFromClient],[stldDocSendToInsuranceCo],[stldDocExpectedDate],[stlnRecUserID],[stldDtCreated],[stlnModifyUserID],[stldDtModified]
-,[stlnLevelNo],[stlnLessDisbursement],[stlnNet],[stlnForwarder],[stlnPrior],[stlnOther],[stlnGrossAttorneyFee],[stldSettlementDate],[stldDateOfDisbursement],[stlnAttFeeType]
-,[stlnAttFeeValue],[stlnNetToClientAmt],[stlsComments])
-Select distinct negnID,casnCaseID,null,plnnPlaintiffID,i1.cinnContactID,b.AMOUNTDUE,null,null,null,null,null,null,null,null, 
-case isnull((u2.usrnuserid),'') when '' then 368 else (u2.usrnuserid) end,case (m.datecreated) when null then GETDATE() else (m.datecreated) end,null,null,b.LW_SETTLEID,null,b.AMOUNTDUE,null,null
-,null,l.SETTLEMENT/3,case when isdate(l.ADATE)= 1  and YEAR(l.ADATE)<2100  then l.ADATE else GETDATE() end,null,null,null,null,
-n.DESCRIPTION+CHAR(13) + convert(varchar(6000),ltrim(replace(replace(replace(dbo.RegExReplace(n.NOTES,'({\\)(.+?)(})|(\\)(.+?)(\b)','') ,'}',''),char(13),'') ,char(10),''))) 
-From WilliamPagerSaga.dbo.LW_SETTLE b
-left join WilliamPagerSaga.dbo.ASSIGN a on a.ASSIGNID=b.ASSIGNID
-left join WilliamPagerSaga.dbo.MATTER m on m.MATTERID=a.MATTERID
-left join sma_TRN_CaseS on cassCaseNumber=MATTERNUMBER
-outer apply(select top 1 negnid from sma_TRN_Negotiations where negnCaseID=casnCaseID)z
-LEFT join WilliamPagerSaga.dbo.LW_PAY p on p.LW_SETTLEID=b.LW_SETTLEID
-Left Join [WilliamPagerSaga].dbo.LW_log l on m.matterid=l.matterid
-left join WilliamPagerSaga.dbo.ASSIGN carr on carr.ASSIGNID=b.CARRIERASSIGNID 
-left join WilliamPagerSaga.dbo.ASSIGN def on def.ASSIGNID=b.DEFENDANTASSIGNID
-left join WilliamPagerSaga.dbo.ASSIGN firm on firm.ASSIGNID=b.FIRMASSIGNID
-Left Join [WilliamPagerSaga].dbo.entities estaff on l.userid=estaff.entityid
-Left Join [WilliamPagerSaga].dbo.entities espoke on l.ADJUSTER_ATTORNEYID=espoke.entityid
-Left Join [WilliamPagerSaga].dbo.LW_matter lm on l.matterid=lm.matterid
-left join sma_TRN_Plaintiff on plnnCaseID=casnCaseID and plnbIsPrimary=1
-left join sma_MST_IndvContacts  i1 on  i1.cinsGrade=estaff.ENTITYID
-left join sma_MST_IndvContacts  i2 on  i2.cinsGrade=espoke.ENTITYID
-left join sma_MST_IndvContacts cl on cl.cinsGrade=m.CREATORID
-left join sma_mst_users u2 on u2.usrnContactID=cl.cinnContactID
-left join [WilliamPagerSaga].dbo.note n on n.NOTEID=l.NOTEID
-where casnCaseID is not null --and  l.Settlement is not null  and CONVERT(varchar,negdDate,101)=CONVERT(varchar,l.ADATE,101)
-go
+	(
+	[stlnNegotID]
+   ,[stlnCaseID]
+   ,[stlsUniquePartyID]
+   ,[stlnPlaintiffID]
+   ,[stlnStaffID]
+   ,[stlnSetAmt]
+   ,[stlbConsentReqd]
+   ,[stlbCourtConsent]
+   ,[stldCourtDtSent]
+   ,[stldCourtDtRcvd]
+   ,[stldDocSendToClientOn]
+   ,[stldDocReceivedFromClient]
+   ,[stldDocSendToInsuranceCo]
+   ,[stldDocExpectedDate]
+   ,[stlnRecUserID]
+   ,[stldDtCreated]
+   ,[stlnModifyUserID]
+   ,[stldDtModified]
+   ,[stlnLevelNo]
+   ,[stlnLessDisbursement]
+   ,[stlnNet]
+   ,[stlnForwarder]
+   ,[stlnPrior]
+   ,[stlnOther]
+   ,[stlnGrossAttorneyFee]
+   ,[stldSettlementDate]
+   ,[stldDateOfDisbursement]
+   ,[stlnAttFeeType]
+   ,[stlnAttFeeValue]
+   ,[stlnNetToClientAmt]
+   ,[stlsComments]
+	)
+	SELECT DISTINCT
+		negnID
+	   ,casnCaseID
+	   ,NULL
+	   ,plnnPlaintiffID
+	   ,i1.cinnContactID
+	   ,b.AMOUNTDUE
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,CASE ISNULL((u2.usrnuserid), '')
+			WHEN ''
+				THEN 368
+			ELSE (u2.usrnuserid)
+		END
+	   ,CASE (m.datecreated)
+			WHEN NULL
+				THEN GETDATE()
+			ELSE (m.datecreated)
+		END
+	   ,NULL
+	   ,NULL
+	   ,b.LW_SETTLEID
+	   ,NULL
+	   ,b.AMOUNTDUE
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,l.SETTLEMENT / 3
+	   ,CASE
+			WHEN ISDATE(l.ADATE) = 1 AND
+				YEAR(l.ADATE) < 2100
+				THEN l.ADATE
+			ELSE GETDATE()
+		END
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,NULL
+	   ,n.DESCRIPTION + CHAR(13) + CONVERT(VARCHAR(6000), LTRIM(REPLACE(REPLACE(REPLACE(dbo.RegExReplace(n.NOTES, '({\\)(.+?)(})|(\\)(.+?)(\b)', ''), '}', ''), CHAR(13), ''), CHAR(10), '')))
+	FROM WilliamPagerSaga.dbo.LW_SETTLE b
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN a
+		ON a.ASSIGNID = b.ASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.MATTER m
+		ON m.MATTERID = a.MATTERID
+	LEFT JOIN sma_TRN_CaseS
+		ON cassCaseNumber = MATTERNUMBER
+	OUTER APPLY (
+		SELECT TOP 1
+			negnid
+		FROM sma_TRN_Negotiations
+		WHERE negnCaseID = casnCaseID
+	) z
+	LEFT JOIN WilliamPagerSaga.dbo.LW_PAY p
+		ON p.LW_SETTLEID = b.LW_SETTLEID
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_log l
+		ON m.matterid = l.matterid
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN carr
+		ON carr.ASSIGNID = b.CARRIERASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN def
+		ON def.ASSIGNID = b.DEFENDANTASSIGNID
+	LEFT JOIN WilliamPagerSaga.dbo.ASSIGN firm
+		ON firm.ASSIGNID = b.FIRMASSIGNID
+	LEFT JOIN [WilliamPagerSaga].dbo.entities estaff
+		ON l.userid = estaff.entityid
+	LEFT JOIN [WilliamPagerSaga].dbo.entities espoke
+		ON l.ADJUSTER_ATTORNEYID = espoke.entityid
+	LEFT JOIN [WilliamPagerSaga].dbo.LW_matter lm
+		ON l.matterid = lm.matterid
+	LEFT JOIN sma_TRN_Plaintiff
+		ON plnnCaseID = casnCaseID
+			AND plnbIsPrimary = 1
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON i1.cinsGrade = estaff.ENTITYID
+	LEFT JOIN sma_MST_IndvContacts i2
+		ON i2.cinsGrade = espoke.ENTITYID
+	LEFT JOIN sma_MST_IndvContacts cl
+		ON cl.cinsGrade = m.CREATORID
+	LEFT JOIN sma_mst_users u2
+		ON u2.usrnContactID = cl.cinnContactID
+	LEFT JOIN [WilliamPagerSaga].dbo.note n
+		ON n.NOTEID = l.NOTEID
+	WHERE casnCaseID IS NOT NULL --and  l.Settlement is not null  and CONVERT(varchar,negdDate,101)=CONVERT(varchar,l.ADATE,101)
+GO
 INSERT INTO [sma_TRN_CheckReceivedFeeRecorded]
-([crfnSettlementID],[crfnAmount],[crfdReceivedDate],[crfsTypeOfAmount])     
-select stlnID,PAID,PAIDDATE,'s' from sma_TRN_Settlements 
-left join WilliamPagerSaga.dbo.LW_PAY on LW_SETTLEID=stlnLevelNo
-where stlnID is not null 
-go
-alter table sma_trn_settlements
-alter column stlsComments varchar(max)
-go
-Update a
-set stlsComments=isnull('Due: '+isnull(convert(varchar,due,101),'')+char(13)+'Amount: '+isnull(convert(varchar,amount),'')+char(13),'') +isnull('Paid Date: '+convert(varchar(10),PAIDDATE,101) +char(13),'')+isnull('Paid: '+cast(paid as varchar(200)) +char(13),'')+isnull(convert(varchar(max),comments),'')+isnull(stlsComments  ,'')
-from sma_TRN_Settlements a
-left join WilliamPagerSaga.dbo.LW_PAY on LW_SETTLEID=stlnLevelNo
-where stlnID is not null
-go
-Delete from sma_TRN_Settlements where stlnID not in(
-select min(stlnID)  from sma_TRN_Settlements  where stlsUniquePartyID is not null Group by stlnNegotID,stlnCaseID,stlnSetAmt
-union
-select  max(stlnID)  from  sma_TRN_Settlements  where stlsUniquePartyID is null Group by stlnNegotID,stlnCaseID,stlnSetAmt) 
-go
+	(
+	[crfnSettlementID]
+   ,[crfnAmount]
+   ,[crfdReceivedDate]
+   ,[crfsTypeOfAmount]
+	)
+	SELECT
+		stlnID
+	   ,PAID
+	   ,PAIDDATE
+	   ,'s'
+	FROM sma_TRN_Settlements
+	LEFT JOIN WilliamPagerSaga.dbo.LW_PAY
+		ON LW_SETTLEID = stlnLevelNo
+	WHERE stlnID IS NOT NULL
+GO
+ALTER TABLE sma_trn_settlements
+ALTER COLUMN stlsComments VARCHAR(MAX)
+GO
+UPDATE a
+SET stlsComments = ISNULL('Due: ' + ISNULL(CONVERT(VARCHAR, due, 101), '') + CHAR(13) + 'Amount: ' + ISNULL(CONVERT(VARCHAR, amount), '') + CHAR(13), '') + ISNULL('Paid Date: ' + CONVERT(VARCHAR(10), PAIDDATE, 101) + CHAR(13), '') + ISNULL('Paid: ' + CAST(paid AS VARCHAR(200)) + CHAR(13), '') + ISNULL(CONVERT(VARCHAR(MAX), comments), '') + ISNULL(stlsComments, '')
+FROM sma_TRN_Settlements a
+LEFT JOIN WilliamPagerSaga.dbo.LW_PAY
+	ON LW_SETTLEID = stlnLevelNo
+WHERE stlnID IS NOT NULL
+GO
+DELETE FROM sma_TRN_Settlements
+WHERE stlnID NOT IN (
+		SELECT
+			MIN(stlnID)
+		FROM sma_TRN_Settlements
+		WHERE stlsUniquePartyID IS NOT NULL
+		GROUP BY stlnNegotID
+				,stlnCaseID
+				,stlnSetAmt
+		UNION
+		SELECT
+			MAX(stlnID)
+		FROM sma_TRN_Settlements
+		WHERE stlsUniquePartyID IS NULL
+		GROUP BY stlnNegotID
+				,stlnCaseID
+				,stlnSetAmt
+	)
+GO
 
