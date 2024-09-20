@@ -10,73 +10,73 @@ DECLARE @SQL VARCHAR(2000)
 -- Declare a cursor that will get staff contactid
 
 
-DECLARE trnasactiontable_Cursor CURSOR FAST_FORWARD FOR SELECT DISTINCT
-	name
-FROM sys.objects
-WHERE type = 'u'
-	AND name LIKE '%trn_%'
-	AND name NOT LIKE 'sma_trn_cases'
-	AND name NOT LIKE 'sma_TRN_CourtDocket'
-	AND name NOT LIKE 'sma_TRN_Plaintiff'
-	AND name NOT LIKE 'sma_TRN_CaseStagesStatus'
---Open a cursor
-OPEN trnasactiontable_Cursor
+--DECLARE trnasactiontable_Cursor CURSOR FAST_FORWARD FOR SELECT DISTINCT
+--	name
+--FROM sys.objects
+--WHERE type = 'u'
+--	AND name LIKE '%trn_%'
+--	AND name NOT LIKE 'sma_trn_cases'
+--	AND name NOT LIKE 'sma_TRN_CourtDocket'
+--	AND name NOT LIKE 'sma_TRN_Plaintiff'
+--	AND name NOT LIKE 'sma_TRN_CaseStagesStatus'
+----Open a cursor
+--OPEN trnasactiontable_Cursor
 
-FETCH NEXT FROM trnasactiontable_Cursor INTO @Name
+--FETCH NEXT FROM trnasactiontable_Cursor INTO @Name
 
-WHILE @@FETCH_STATUS = 0
-BEGIN
+--WHILE @@FETCH_STATUS = 0
+--BEGIN
 
-SELECT
-	@SQL = 'truncate table ' + @Name + ''
-EXEC (@SQL)
+--SELECT
+--	@SQL = 'truncate table ' + @Name + ''
+--EXEC (@SQL)
 
-FETCH NEXT FROM trnasactiontable_Cursor INTO @Name
-END
+--FETCH NEXT FROM trnasactiontable_Cursor INTO @Name
+--END
 
-CLOSE trnasactiontable_Cursor
-DEALLOCATE trnasactiontable_Cursor
-
-
-DECLARE @Name1 VARCHAR(1000)
-DECLARE @SQL1 VARCHAR(2000)
-
--- Declare a cursor that will get staff contactid
+--CLOSE trnasactiontable_Cursor
+--DEALLOCATE trnasactiontable_Cursor
 
 
-DECLARE Contacttable_Cursor CURSOR FAST_FORWARD FOR SELECT DISTINCT
-	name
-FROM sys.objects
-WHERE type = 'u'
-	AND name LIKE '%contact%'
-	AND name NOT LIKE '%contacttype%'
-	AND name NOT LIKE '%sma_mst_ContactDocumentType%'
-	AND name NOT LIKE '%sma_MST_IndvContacts%'
-	AND name NOT LIKE 'CategoryContactFilters'
-	AND name NOT LIKE '%sma_MST_orgContacts%'
-	AND name NOT LIKE '%sma_MST_ContactCtg%'
-	AND name NOT LIKE '%sma_MST_ContactNoType%'
---Open a cursor
-OPEN Contacttable_Cursor
+--DECLARE @Name1 VARCHAR(1000)
+--DECLARE @SQL1 VARCHAR(2000)
 
-FETCH NEXT FROM Contacttable_Cursor INTO @Name1
+---- Declare a cursor that will get staff contactid
 
-WHILE @@FETCH_STATUS = 0
-BEGIN
 
-SELECT
-	@SQL1 = 'truncate table ' + @Name1 + ''
-EXEC (@SQL1)
+--DECLARE Contacttable_Cursor CURSOR FAST_FORWARD FOR SELECT DISTINCT
+--	name
+--FROM sys.objects
+--WHERE type = 'u'
+--	AND name LIKE '%contact%'
+--	AND name NOT LIKE '%contacttype%'
+--	AND name NOT LIKE '%sma_mst_ContactDocumentType%'
+--	AND name NOT LIKE '%sma_MST_IndvContacts%'
+--	AND name NOT LIKE 'CategoryContactFilters'
+--	AND name NOT LIKE '%sma_MST_orgContacts%'
+--	AND name NOT LIKE '%sma_MST_ContactCtg%'
+--	AND name NOT LIKE '%sma_MST_ContactNoType%'
+----Open a cursor
+--OPEN Contacttable_Cursor
 
-FETCH NEXT FROM Contacttable_Cursor INTO @Name1
-END
+--FETCH NEXT FROM Contacttable_Cursor INTO @Name1
 
-CLOSE Contacttable_Cursor
-DEALLOCATE Contacttable_Cursor
+--WHILE @@FETCH_STATUS = 0
+--BEGIN
 
-TRUNCATE TABLE sma_mst_contactnumbers
-TRUNCATE TABLE sma_mst_address
-TRUNCATE TABLE sma_mst_emailwebsite
+--SELECT
+--	@SQL1 = 'truncate table ' + @Name1 + ''
+--EXEC (@SQL1)
+
+--FETCH NEXT FROM Contacttable_Cursor INTO @Name1
+--END
+
+--CLOSE Contacttable_Cursor
+--DEALLOCATE Contacttable_Cursor
+
+--TRUNCATE TABLE sma_mst_contactnumbers
+--TRUNCATE TABLE sma_mst_address
+--TRUNCATE TABLE sma_mst_emailwebsite
 
 
 --select t.name as TableWithForeignKey, fk.constraint_column_id as FK_PartNo , c.name as ForeignKeyColumn 
@@ -224,90 +224,90 @@ IF EXISTS (
 	ALTER TABLE [dbo].[WorkFlows] DROP CONSTRAINT [FK_WorkFlows_sma_MST_Users]
 GO
 -->truncate table sma_mst_indvcontacts<--chinmong implementation
-TRUNCATE TABLE sma_mst_orgcontacts
--->truncate table sma_mst_users<--chinmong comment implementation
-TRUNCATE TABLE sma_trn_cases
-TRUNCATE TABLE sma_trn_plaintiff
-TRUNCATE TABLE sma_mst_ContactDocumentType
-TRUNCATE TABLE sma_TRN_CourtDocket
-TRUNCATE TABLE sma_mst_contacttypesforcontact
-TRUNCATE TABLE sma_MST_AdvertisementCampaign
-TRUNCATE TABLE sma_MST_ReferOutRules
-TRUNCATE TABLE saemailsignature
+--TRUNCATE TABLE sma_mst_orgcontacts
+---->truncate table sma_mst_users<--chinmong comment implementation
+--TRUNCATE TABLE sma_trn_cases
+--TRUNCATE TABLE sma_trn_plaintiff
+--TRUNCATE TABLE sma_mst_ContactDocumentType
+--TRUNCATE TABLE sma_TRN_CourtDocket
+--TRUNCATE TABLE sma_mst_contacttypesforcontact
+--TRUNCATE TABLE sma_MST_AdvertisementCampaign
+--TRUNCATE TABLE sma_MST_ReferOutRules
+--TRUNCATE TABLE saemailsignature
 GO
 
 
 
-ALTER TABLE [dbo].[sma_TRN_ContactDocuments] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_ContactDocuments_sma_mst_ContactDocumentType] FOREIGN KEY ([cntctDocumentTypeID])
-REFERENCES [dbo].[sma_mst_ContactDocumentType] ([cntctDocTypeID])
-GO
+--ALTER TABLE [dbo].[sma_TRN_ContactDocuments] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_ContactDocuments_sma_mst_ContactDocumentType] FOREIGN KEY ([cntctDocumentTypeID])
+--REFERENCES [dbo].[sma_mst_ContactDocumentType] ([cntctDocTypeID])
+--GO
 
-ALTER TABLE [dbo].[sma_TRN_ContactDocuments] CHECK CONSTRAINT [FK_sma_TRN_ContactDocuments_sma_mst_ContactDocumentType]
-GO
+--ALTER TABLE [dbo].[sma_TRN_ContactDocuments] CHECK CONSTRAINT [FK_sma_TRN_ContactDocuments_sma_mst_ContactDocumentType]
+--GO
 
-ALTER TABLE [dbo].[sma_MST_OtherCasesContact] WITH CHECK ADD CONSTRAINT [FK_sma_MST_OtherCasesContact_sma_TRN_Cases] FOREIGN KEY ([OtherCasesID])
-REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
-GO
+--ALTER TABLE [dbo].[sma_MST_OtherCasesContact] WITH CHECK ADD CONSTRAINT [FK_sma_MST_OtherCasesContact_sma_TRN_Cases] FOREIGN KEY ([OtherCasesID])
+--REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
+--GO
 
-ALTER TABLE [dbo].[sma_MST_OtherCasesContact] CHECK CONSTRAINT [FK_sma_MST_OtherCasesContact_sma_TRN_Cases]
-GO
+--ALTER TABLE [dbo].[sma_MST_OtherCasesContact] CHECK CONSTRAINT [FK_sma_MST_OtherCasesContact_sma_TRN_Cases]
+--GO
 
-ALTER TABLE [dbo].[sma_TRN_CaseContactComment] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_CaseContactComment_sma_TRN_Cases] FOREIGN KEY ([CaseContactCaseID])
-REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
-GO
+--ALTER TABLE [dbo].[sma_TRN_CaseContactComment] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_CaseContactComment_sma_TRN_Cases] FOREIGN KEY ([CaseContactCaseID])
+--REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
+--GO
 
-ALTER TABLE [dbo].[sma_TRN_CaseContactComment] CHECK CONSTRAINT [FK_sma_TRN_CaseContactComment_sma_TRN_Cases]
-GO
-
-
-GO
-
-ALTER TABLE [dbo].[sma_trn_AgeolCallersInfo] WITH CHECK ADD CONSTRAINT [FK_sma_trn_AgeolCallersInfo_sma_TRN_Cases] FOREIGN KEY ([CaseID])
-REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
-GO
-
-ALTER TABLE [dbo].[sma_trn_AgeolCallersInfo] CHECK CONSTRAINT [FK_sma_trn_AgeolCallersInfo_sma_TRN_Cases]
-GO
-ALTER TABLE [dbo].[sma_TRN_SearchEngine] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_SearchEngine_sma_TRN_Cases] FOREIGN KEY ([CaseID])
-REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
-GO
-
-ALTER TABLE [dbo].[sma_TRN_SearchEngine] CHECK CONSTRAINT [FK_sma_TRN_SearchEngine_sma_TRN_Cases]
-GO
-
-GO
-
-ALTER TABLE [dbo].[sma_trn_SSDAppealCounsel] WITH CHECK ADD CONSTRAINT [FK_sma_trn_SSDAppealCounselnSma_trn_plaintiff] FOREIGN KEY ([SSDAppealCounselPlaintiffID])
-REFERENCES [dbo].[sma_TRN_Plaintiff] ([plnnPlaintiffID])
-GO
-
-ALTER TABLE [dbo].[sma_trn_SSDAppealCounsel] CHECK CONSTRAINT [FK_sma_trn_SSDAppealCounselnSma_trn_plaintiff]
-GO
+--ALTER TABLE [dbo].[sma_TRN_CaseContactComment] CHECK CONSTRAINT [FK_sma_TRN_CaseContactComment_sma_TRN_Cases]
+--GO
 
 
 GO
 
-ALTER TABLE [dbo].[sma_trn_SSDInitialApplication] WITH CHECK ADD CONSTRAINT [FK_sma_trn_plaintiff] FOREIGN KEY ([SSDPlaintifID])
-REFERENCES [dbo].[sma_TRN_Plaintiff] ([plnnPlaintiffID])
-GO
+--ALTER TABLE [dbo].[sma_trn_AgeolCallersInfo] WITH CHECK ADD CONSTRAINT [FK_sma_trn_AgeolCallersInfo_sma_TRN_Cases] FOREIGN KEY ([CaseID])
+--REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
+--GO
 
-ALTER TABLE [dbo].[sma_trn_SSDInitialApplication] CHECK CONSTRAINT [FK_sma_trn_plaintiff]
-GO
+--ALTER TABLE [dbo].[sma_trn_AgeolCallersInfo] CHECK CONSTRAINT [FK_sma_trn_AgeolCallersInfo_sma_TRN_Cases]
+--GO
+--ALTER TABLE [dbo].[sma_TRN_SearchEngine] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_SearchEngine_sma_TRN_Cases] FOREIGN KEY ([CaseID])
+--REFERENCES [dbo].[sma_TRN_Cases] ([casnCaseID])
+--GO
 
-GO
+--ALTER TABLE [dbo].[sma_TRN_SearchEngine] CHECK CONSTRAINT [FK_sma_TRN_SearchEngine_sma_TRN_Cases]
+--GO
 
-ALTER TABLE [dbo].[sma_trn_caseJudgeorClerk] WITH CHECK ADD CONSTRAINT [FK_sma_trn_caseJudgeorClerk_sma_TRN_CourtDocket] FOREIGN KEY ([crtDocketID])
-REFERENCES [dbo].[sma_TRN_CourtDocket] ([crdnCourtDocketID])
-GO
+--GO
 
-ALTER TABLE [dbo].[sma_trn_caseJudgeorClerk] CHECK CONSTRAINT [FK_sma_trn_caseJudgeorClerk_sma_TRN_CourtDocket]
-GO
+--ALTER TABLE [dbo].[sma_trn_SSDAppealCounsel] WITH CHECK ADD CONSTRAINT [FK_sma_trn_SSDAppealCounselnSma_trn_plaintiff] FOREIGN KEY ([SSDAppealCounselPlaintiffID])
+--REFERENCES [dbo].[sma_TRN_Plaintiff] ([plnnPlaintiffID])
+--GO
 
-ALTER TABLE [dbo].[sma_MST_CaseTypeCoCounsel] WITH CHECK ADD CONSTRAINT [FK_sma_MST_CaseTypeCoCounsel_sma_MST_IndvContacts] FOREIGN KEY ([CoCounselAttorneyID])
-REFERENCES [dbo].[sma_MST_IndvContacts] ([cinnContactID])
-GO
+--ALTER TABLE [dbo].[sma_trn_SSDAppealCounsel] CHECK CONSTRAINT [FK_sma_trn_SSDAppealCounselnSma_trn_plaintiff]
+--GO
 
-ALTER TABLE [dbo].[sma_MST_CaseTypeCoCounsel] CHECK CONSTRAINT [FK_sma_MST_CaseTypeCoCounsel_sma_MST_IndvContacts]
+
+--GO
+
+--ALTER TABLE [dbo].[sma_trn_SSDInitialApplication] WITH CHECK ADD CONSTRAINT [FK_sma_trn_plaintiff] FOREIGN KEY ([SSDPlaintifID])
+--REFERENCES [dbo].[sma_TRN_Plaintiff] ([plnnPlaintiffID])
+--GO
+
+--ALTER TABLE [dbo].[sma_trn_SSDInitialApplication] CHECK CONSTRAINT [FK_sma_trn_plaintiff]
+--GO
+
+--GO
+
+--ALTER TABLE [dbo].[sma_trn_caseJudgeorClerk] WITH CHECK ADD CONSTRAINT [FK_sma_trn_caseJudgeorClerk_sma_TRN_CourtDocket] FOREIGN KEY ([crtDocketID])
+--REFERENCES [dbo].[sma_TRN_CourtDocket] ([crdnCourtDocketID])
+--GO
+
+--ALTER TABLE [dbo].[sma_trn_caseJudgeorClerk] CHECK CONSTRAINT [FK_sma_trn_caseJudgeorClerk_sma_TRN_CourtDocket]
+--GO
+
+--ALTER TABLE [dbo].[sma_MST_CaseTypeCoCounsel] WITH CHECK ADD CONSTRAINT [FK_sma_MST_CaseTypeCoCounsel_sma_MST_IndvContacts] FOREIGN KEY ([CoCounselAttorneyID])
+--REFERENCES [dbo].[sma_MST_IndvContacts] ([cinnContactID])
+--GO
+
+--ALTER TABLE [dbo].[sma_MST_CaseTypeCoCounsel] CHECK CONSTRAINT [FK_sma_MST_CaseTypeCoCounsel_sma_MST_IndvContacts]
 --GO
 
 --ALTER TABLE [dbo].[WorkFlows]  WITH CHECK ADD  CONSTRAINT [FK_WorkFlows_sma_MST_Users] FOREIGN KEY([CreatorUserId])
@@ -379,7 +379,7 @@ WHERE CASE
 				ON e.ENTITYTYPEID = et.ENTITYTYPEID
 			WHERE e.ENTITYCATEGORY = 1
 				OR et.DESCRIPTION LIKE '%staff%'
-				AND usertype = 1
+		--AND usertype = 1
 		) a
 		GROUP BY loginname
 		HAVING COUNT(loginname) > 1
@@ -403,7 +403,7 @@ WHERE CASE
 				ON e.ENTITYTYPEID = et.ENTITYTYPEID
 			WHERE e.ENTITYCATEGORY = 1
 				OR et.DESCRIPTION LIKE '%staff%'
-				AND usertype = 1
+		--AND usertype = 1
 		) a
 		GROUP BY loginname
 		HAVING COUNT(loginname) > 1
@@ -533,12 +533,14 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,MIDDLE_CONTACT
 	   ,LAST_COMPANY
 	   ,NULL
-	   ,ALIASNAMES
-	   ,CASE USERTYPE
-			WHEN 1
-				THEN 1
-			ELSE 0
-		END
+		--	   ,ALIASNAMES
+	   ,NULL			-- ds 2024-09-20
+		--  ,CASE USERTYPE
+		--	WHEN 1
+		--		THEN 1
+		--	ELSE 0
+		--END
+	   ,1				-- ds 2024-09-20
 	   ,ssn
 	   ,DATEOFB
 	   ,ENTITYNAME
@@ -558,7 +560,7 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,1
 	   ,1
 	   ,NULL
-	   ,phone
+	   ,left(phone,20)
 	   ,''
 	   ,''
 	   ,MOBILEPHONE
@@ -572,8 +574,10 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,''
 	   ,''
 	   ,''
-	   ,HEIGHTFEET + HEIGHTINCH
-	   ,WEIGHT
+		--,HEIGHTFEET + HEIGHTINCH
+		--,WEIGHT
+	   ,NULL			-- ds 2024-09-20
+	   ,NULL			-- ds 2024-09-20
 	   ,''
 	   ,NULL
 	   ,''
@@ -658,11 +662,12 @@ INSERT INTO [sma_MST_Users]
 	   ,NULL
 	   ,1
 	   ,NULL
-	   ,CASE
-			WHEN MIN(USERTYPE) = 1
-				THEN 1
-			ELSE 0
-		END
+	 --  ,CASE
+		--	WHEN MIN(USERTYPE) = 1
+		--		THEN 1
+		--	ELSE 0
+		--END
+		,0			AS usrbActiveState			-- ds 2024-09-20
 	FROM sma_MST_IndvContacts
 	LEFT JOIN [WilliamPagerSaga].[dbo].[ENTITIES]
 		ON cinsGrade = ENTITYID
