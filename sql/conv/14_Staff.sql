@@ -1,6 +1,6 @@
 USE WilliamPagerSA
 
-ALTER TABLE sma_trn_casestaff DISABLE TRIGGER ALL
+ALTER TABLE sma_TRN_CaseStaff DISABLE TRIGGER ALL
 
 
 INSERT INTO [sma_TRN_CaseStaff]
@@ -18,7 +18,7 @@ INSERT INTO [sma_TRN_CaseStaff]
    ,[cssnLevelNo]
 	)
 	SELECT DISTINCT
-		casncaseid
+		casnCaseID
 	   ,i1.cinnContactID
 	   ,CASE
 			WHEN z.DESCRIPTION = 'Secretary'
@@ -50,36 +50,48 @@ INSERT INTO [sma_TRN_CaseStaff]
 			ELSE 19000
 		END
 	   ,z.DESCRIPTION
-	   ,a.DATECREATED
+	   ,CASE
+			WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATECREATED)
+		END
 	   ,NULL
 	   ,u1.usrnUserID
-	   ,a.DATECREATED
+	   ,CASE
+			WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATECREATED)
+		END
 	   ,u2.usrnUserID
-	   ,a.DATEREVISED
+	   ,CASE
+			WHEN (a.DATEREVISED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATEREVISED)
+		END
 	   ,NULL
 	FROM [WilliamPagerSaga].[dbo].ASSIGN a
-	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] b
+	LEFT JOIN [WilliamPagerSaga].[dbo].[MATTER] b
 		ON b.MATTERID = a.MATTERID
-	LEFT JOIN [WilliamPagerSaga].[dbo].[erole] z
-		ON z.roleid = a.ROLEID
-	LEFT JOIN sma_trn_cases
+	LEFT JOIN [WilliamPagerSaga].[dbo].[EROLE] z
+		ON z.ROLEID = a.ROLEID
+	LEFT JOIN sma_TRN_Cases
 		ON cassCaseNumber = MATTERNUMBER
 	LEFT JOIN sma_MST_IndvContacts i1
 		ON LTRIM(RTRIM(i1.cinsGrade)) = a.ENTITYID
 	--left join sma_MST_SubRole on sbrsDscrptn=case when z.ROLEID in (101,102,105,103,104) then z.DESCRIPTION else 'Attorney' end
 	LEFT JOIN sma_MST_IndvContacts l
 		ON l.cinsGrade = a.CREATORID
-	LEFT JOIN sma_mst_users u1
+	LEFT JOIN sma_MST_Users u1
 		ON u1.usrnContactID = l.cinnContactID
 	LEFT JOIN sma_MST_IndvContacts m
 		ON m.cinsGrade = a.REVISORID
-	LEFT JOIN sma_mst_users u2
+	LEFT JOIN sma_MST_Users u2
 		ON u2.usrnContactID = m.cinnContactID
 	WHERE z.ROLECATEGORYID IN (0, 1, 2, 3, 4, 5)
 		AND a.ENTITYID IN (
 			SELECT
 				cinsGrade
-			FROM sma_mst_users
+			FROM sma_MST_Users
 			JOIN sma_MST_IndvContacts
 				ON cinnContactID = usrnContactID
 			WHERE cinsGrade IS NOT NULL
@@ -112,10 +124,10 @@ INSERT INTO [sma_TRN_CaseStaff]
 	   ,NULL
 	   ,NULL
 	   ,''
-	FROM sma_TRN_CaseS
+	FROM sma_TRN_Cases
 	WHERE casnCaseID NOT IN (
 			SELECT
-				cssncaseid
+				cssnCaseID
 			FROM sma_TRN_CaseStaff
 		)
 
@@ -129,4 +141,4 @@ WHERE cssnPKID NOT IN (
 	)
 
 
-ALTER TABLE sma_trn_casestaff ENABLE TRIGGER ALL
+ALTER TABLE sma_TRN_CaseStaff ENABLE TRIGGER ALL
