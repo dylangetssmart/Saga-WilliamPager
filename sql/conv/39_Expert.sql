@@ -58,7 +58,7 @@ GO
 INSERT INTO sma_TRN_ExpertContacts
 	(
 	ectnCaseID
-   ,ectnexpContactID
+   ,ectnExpContactID
    ,ectnExpAddressID
    ,ectnExpertFor
    ,ectnExpertTypeID
@@ -126,12 +126,12 @@ INSERT INTO sma_TRN_ExpertContacts
 		ON a.EXPERTTYPEID = b.EXPERTTYPEID
 	LEFT JOIN [sma_MST_ExpertType]
 		ON LTRIM(RTRIM(DESCRIPTION)) = LTRIM(RTRIM(extsDscrptn))
-	LEFT JOIN [WilliamPagerSaga].dbo.matrelt mat
-		ON mat.matreltid = a.matreltid
+	LEFT JOIN [WilliamPagerSaga].dbo.MATRELT mat
+		ON mat.MATRELTID = a.MATRELTID
 	LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN asg
 		ON asg.ASSIGNID = mat.ASSIGNID
 	LEFT JOIN [WilliamPagerSaga].dbo.ASSIGN expe
-		ON mat.RELATEDASSIGNID = expe.assignID
+		ON mat.RELATEDASSIGNID = expe.ASSIGNID
 	LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e1
 		ON e1.ENTITYID = asg.ENTITYID
 	LEFT JOIN [WilliamPagerSaga].dbo.ENTITIES e2
@@ -140,13 +140,13 @@ INSERT INTO sma_TRN_ExpertContacts
 		ON r1.ROLEID = asg.ROLEID
 	LEFT JOIN [WilliamPagerSaga].dbo.EROLE r2
 		ON r2.ROLEID = expe.ROLEID
-	LEFT JOIN [WilliamPagerSaga].dbo.matter m
-		ON m.matterid = expe.matterid
-	LEFT JOIN sma_trn_cases
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER m
+		ON m.MATTERID = expe.MATTERID
+	LEFT JOIN sma_TRN_Cases
 		ON cassCaseNumber = MATTERNUMBER
 	LEFT JOIN sma_MST_IndvContacts i1
 		ON i1.cinsGrade = e2.ENTITYID
-	LEFT JOIN sma_mst_orgcontacts o1
+	LEFT JOIN sma_MST_OrgContacts o1
 		ON o1.connLevelNo = e2.ENTITYID
 	OUTER APPLY (
 		SELECT TOP 1
@@ -188,7 +188,7 @@ INSERT INTO [sma_mst_SubRoleCode]
 			SELECT
 				[srcsDscrptn]
 			FROM [sma_mst_SubRoleCode]
-			WHERE srcnroleid = 5
+			WHERE srcnRoleID = 5
 		)
 GO
 INSERT INTO sma_TRN_CaseWitness
@@ -209,17 +209,17 @@ INSERT INTO sma_TRN_CaseWitness
    ,witnLevelNo
 	)
 	SELECT
-		casncaseid
+		casnCaseID
 	   ,CASE
-			WHEN i1.cinncontactid IS NOT NULL
-				THEN '1' + CAST(i1.cinncontactid AS VARCHAR(20))
-			WHEN o1.conncontactid IS NOT NULL
-				THEN '2' + CAST(o1.conncontactid AS VARCHAR(20))
+			WHEN i1.cinnContactID IS NOT NULL
+				THEN '1' + CAST(i1.cinnContactID AS VARCHAR(20))
+			WHEN o1.connContactID IS NOT NULL
+				THEN '2' + CAST(o1.connContactID AS VARCHAR(20))
 		END
 	   ,CASE
-			WHEN i1.cinncontactid IS NOT NULL
+			WHEN i1.cinnContactID IS NOT NULL
 				THEN ad1.addnAddressID
-			WHEN o1.conncontactid IS NOT NULL
+			WHEN o1.connContactID IS NOT NULL
 				THEN ad2.addnAddressID
 		END
 	   ,[srcnCodeId]
@@ -231,31 +231,32 @@ INSERT INTO sma_TRN_CaseWitness
 				THEN 3
 			ELSE NULL
 		END
-	   ,CASE
-			WHEN report_requested BETWEEN '1/1/1900' AND '12/31/2079'
-				THEN report_requested
-			ELSE NULL
-		END
+		--  ,CASE
+		--	WHEN report_requested BETWEEN '1/1/1900' AND '12/31/2079'
+		--		THEN report_requested
+		--	ELSE NULL
+		--END
+	   ,NULL				-- ds 2024-09-23
 	   ,NULL
 	   ,NULL
 	   ,NULL
-	   ,ISNULL('REPORT DATE: ' + CONVERT(VARCHAR(100), ReportDate), '')
+	   ,ISNULL('REPORT DATE: ' + CONVERT(VARCHAR(100), REPORTDATE), '')
 		+ ISNULL(CHAR(13) + 'DATE REVIEWED: ' + CONVERT(VARCHAR(100), [DATEREVIEWED]), '')
 		+ ISNULL(CHAR(13) + 'REPORT RECEIVED: ' + [REPORTRECEIVED], '')
 	   ,368
 	   ,GETDATE()
 	   ,''
 	FROM [WilliamPagerSaga].[dbo].[LW_WITNESS] w
-	LEFT JOIN [WilliamPagerSaga].[dbo].[Assign] a
-		ON w.assignid = a.assignid
-	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] m
-		ON m.matterid = a.matterid
-	LEFT JOIN sma_trn_cases
-		ON casscasenumber = matternumber
-	LEFT JOIN sma_mst_indvcontacts i1
-		ON i1.cinsgrade = a.entityid
-	LEFT JOIN sma_mst_orgcontacts o1
-		ON o1.connlevelno = a.entityid
+	LEFT JOIN [WilliamPagerSaga].[dbo].[ASSIGN] a
+		ON w.ASSIGNID = a.ASSIGNID
+	LEFT JOIN [WilliamPagerSaga].[dbo].[MATTER] m
+		ON m.MATTERID = a.MATTERID
+	LEFT JOIN sma_TRN_Cases
+		ON cassCaseNumber = MATTERNUMBER
+	LEFT JOIN sma_MST_IndvContacts i1
+		ON i1.cinsGrade = a.ENTITYID
+	LEFT JOIN sma_MST_OrgContacts o1
+		ON o1.connLevelNo = a.ENTITYID
 	OUTER APPLY (
 		SELECT TOP 1
 			addnAddressID
@@ -279,15 +280,15 @@ INSERT INTO sma_TRN_CaseWitness
 			[srcnCodeId]
 		FROM [sma_mst_SubRoleCode]
 		WHERE [srcsDscrptn] = wt.[DESCRIPTION]
-			AND srcnroleid = 5
+			AND srcnRoleID = 5
 	) typ
 GO
 ALTER TABLE sma_TRN_CriticalComments DISABLE TRIGGER ALL
 INSERT INTO sma_TRN_CriticalComments
 	SELECT DISTINCT
-		caseid
+		CaseId
 	   ,0
-	   ,comments
+	   ,Comments
 	   ,1
 	   ,RecUserID
 	   ,DtCreated
@@ -296,7 +297,7 @@ INSERT INTO sma_TRN_CriticalComments
 	   ,1
 	   ,'RET'
 	FROM sma_TRN_Incidents
-	WHERE ISNULL(comments, '') <> ''
+	WHERE ISNULL(Comments, '') <> ''
 ALTER TABLE sma_TRN_CriticalComments ENABLE TRIGGER ALL
 GO
 UPDATE [sma_MST_CaseType]

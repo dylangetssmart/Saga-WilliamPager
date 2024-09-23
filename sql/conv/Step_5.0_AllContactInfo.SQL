@@ -108,7 +108,7 @@ INSERT INTO [dbo].[sma_MST_AllContactInfo]
 	   ,NULL																			 AS ContactEmail
 	   ,sma_MST_OrgContacts.connContactTypeID											 AS ContactTypeId
 	   ,sma_MST_OriginalContactTypes.octsDscrptn										 AS ContactType
-	   ,sma_MST_OrgContacts.consComments												 AS Comments
+	   ,LEFT(sma_MST_OrgContacts.consComments, 500)										 AS Comments
 	   ,GETDATE()																		 AS DateModified
 	   ,347																				 AS ModifyUserId
 	   ,0																				 AS IsDeleted
@@ -366,11 +366,11 @@ INSERT INTO [sma_MST_ContactTypesForContact]
 	UNION
 	SELECT DISTINCT
 		1
-	   ,usrncontactid
+	   ,usrnContactID
 	   ,44
 	   ,368
 	   ,GETDATE()
-	FROM sma_mst_users
+	FROM sma_MST_Users
 GO
 
 GO

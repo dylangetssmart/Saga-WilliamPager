@@ -93,7 +93,7 @@ INSERT INTO [sma_TRN_CalendarAppointments]
 		END
 	   ,z.crtJudgeorClerkContactID
 	   ,ISNULL(CONVERT(VARCHAR(1800), notes), '') + CHAR(13) + CHAR(13)
-	   ,CASE mr.STATUS
+	   ,CASE mr.ITEMSTATUS
 			WHEN 1
 				THEN 1
 			WHEN 2

@@ -140,8 +140,16 @@ INSERT INTO [sma_TRN_CheckReceivedFeeRecorded]
 		ON LW_SETTLEID = stlnLevelNo
 	WHERE stlnID IS NOT NULL
 GO
+
+
+ALTER FULLTEXT INDEX ON sma_trn_settlements DROP ([stlsComments]);		-- ds 2024-09-23
+
 ALTER TABLE sma_trn_settlements
 ALTER COLUMN stlsComments VARCHAR(MAX)
+
+ALTER FULLTEXT INDEX ON sma_trn_settlements ADD ([stlsComments]);		-- ds 2024-09-23
+
+
 GO
 UPDATE a
 SET stlsComments = ISNULL('Due: ' + ISNULL(CONVERT(VARCHAR, due, 101), '') + CHAR(13) + 'Amount: ' + ISNULL(CONVERT(VARCHAR, amount), '') + CHAR(13), '') + ISNULL('Paid Date: ' + CONVERT(VARCHAR(10), PAIDDATE, 101) + CHAR(13), '') + ISNULL('Paid: ' + CAST(paid AS VARCHAR(200)) + CHAR(13), '') + ISNULL(CONVERT(VARCHAR(MAX), comments), '') + ISNULL(stlsComments, '')

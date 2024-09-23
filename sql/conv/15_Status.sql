@@ -89,49 +89,49 @@ INSERT INTO [sma_TRN_CaseStatus]
 		ON u2.usrnContactID = m.cinnContactID
 	WHERE casnCaseID IS NOT NULL
 
-INSERT INTO [sma_TRN_CaseStatus]
-	(
-	[cssnCaseID]
-   ,[cssnStatusTypeID]
-   ,[cssnStatusID]
-   ,[cssnExpDays]
-   ,[cssdFromDate]
-   ,[cssdToDt]
-   ,[csssComments]
-   ,[cssnRecUserID]
-   ,[cssdDtCreated]
-   ,[cssnModifyUserID]
-   ,[cssdDtModified]
-   ,[cssnLevelNo]
-   ,[cssnDelFlag]
-	)
-	SELECT DISTINCT
-		casnCaseID
-	   ,1
-	   ,cssnStatusID
-	   ,cssnExpNoOfDays
-	   ,b.STATUSDATE
-	   ,DATEPOSTED
-	   ,''
-	   ,u1.usrnUserID
-	   ,b.STATUSDATE
-	   ,u1.usrnUserID
-	   ,b.DATEPOSTED
-	   ,NULL
-	   ,NULL
-	FROM [WilliamPagerSaga].[dbo].[MATTER_STATUS_HISTORY] b
-	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] a
-		ON a.matterid = b.MATTERID
-	LEFT JOIN sma_trn_cases
-		ON cassCaseNumber = MATTERNUMBER
-	LEFT JOIN sma_MST_CaseStatus
-		ON csssDescription = LTRIM(RTRIM(b.STATUS))
-	LEFT JOIN sma_MST_IndvContacts l
-		ON l.cinsGrade = b.POSTEDBY
-	LEFT JOIN sma_mst_users u1
-		ON u1.usrnContactID = l.cinnContactID
-	WHERE casnCaseID IS NOT NULL
-ALTER TABLE [sma_TRN_CaseStatus] ENABLE TRIGGER ALL
+--INSERT INTO [sma_TRN_CaseStatus]
+--	(
+--	[cssnCaseID]
+--   ,[cssnStatusTypeID]
+--   ,[cssnStatusID]
+--   ,[cssnExpDays]
+--   ,[cssdFromDate]
+--   ,[cssdToDt]
+--   ,[csssComments]
+--   ,[cssnRecUserID]
+--   ,[cssdDtCreated]
+--   ,[cssnModifyUserID]
+--   ,[cssdDtModified]
+--   ,[cssnLevelNo]
+--   ,[cssnDelFlag]
+--	)
+--	SELECT DISTINCT
+--		casnCaseID
+--	   ,1
+--	   ,cssnStatusID
+--	   ,cssnExpNoOfDays
+--	   ,b.STATUSDATE
+--	   ,DATEPOSTED
+--	   ,''
+--	   ,u1.usrnUserID
+--	   ,b.STATUSDATE
+--	   ,u1.usrnUserID
+--	   ,b.DATEPOSTED
+--	   ,NULL
+--	   ,NULL
+--	FROM [WilliamPagerSaga].[dbo].[MATTER_STATUS_HISTORY] b
+--	LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] a
+--		ON a.matterid = b.MATTERID
+--	LEFT JOIN sma_trn_cases
+--		ON cassCaseNumber = MATTERNUMBER
+--	LEFT JOIN sma_MST_CaseStatus
+--		ON csssDescription = LTRIM(RTRIM(b.STATUS))
+--	LEFT JOIN sma_MST_IndvContacts l
+--		ON l.cinsGrade = b.POSTEDBY
+--	LEFT JOIN sma_mst_users u1
+--		ON u1.usrnContactID = l.cinnContactID
+--	WHERE casnCaseID IS NOT NULL
+--ALTER TABLE [sma_TRN_CaseStatus] ENABLE TRIGGER ALL
 
 
 ALTER TABLE sma_trn_cases DISABLE TRIGGER ALL

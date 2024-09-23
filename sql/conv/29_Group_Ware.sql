@@ -59,9 +59,11 @@ INSERT INTO [sma_TRN_Emails]
 	   ,0
 	   ,0
 	   ,u1.usrnUserID
-	   ,MR.DATECREATED
+		--	   ,MR.DATECREATED
+	   ,NULL								-- ds 2024-09-23
 	   ,u2.usrnUserID
-	   ,MR.DATEREVISED
+		--	   ,MR.DATEREVISED
+	   ,NULL								-- ds 2024-09-23
 	   ,''
 	   ,NULL
 	   ,NULL
@@ -73,7 +75,7 @@ INSERT INTO [sma_TRN_Emails]
 	FROM WilliamPagerSaga.dbo.MATRULE MR
 	LEFT JOIN WilliamPagerSaga.dbo.MATTER M
 		ON M.MATTERID = MR.MATTERID
-	LEFT JOIN sma_trn_cases
+	LEFT JOIN sma_TRN_Cases
 		ON cassCaseNumber = M.MATTERNUMBER
 	LEFT JOIN sma_MST_IndvContacts i1
 		ON i1.cinsGrade = MR.CREATORID

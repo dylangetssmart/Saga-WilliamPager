@@ -33,22 +33,22 @@ INSERT INTO [sma_TRN_PoliceReports]
 	   ,''
 	   ,''
 	   ,CASE
-			WHEN o.cinncontactid IS NOT NULL
-				THEN o.cinncontactid
-			WHEN n.conncontactid IS NOT NULL
-				THEN n.conncontactid
+			WHEN o.cinnContactID IS NOT NULL
+				THEN o.cinnContactID
+			WHEN n.connContactID IS NOT NULL
+				THEN n.connContactID
 		END
 	   ,CASE
-			WHEN o.cinncontactid IS NOT NULL
+			WHEN o.cinnContactID IS NOT NULL
 				THEN IndvAddressID
-			WHEN n.conncontactid IS NOT NULL
+			WHEN n.connContactID IS NOT NULL
 				THEN orgAddressID
 		END
 	   ,''
 	   ,CASE
-			WHEN o.cinncontactid IS NOT NULL
+			WHEN o.cinnContactID IS NOT NULL
 				THEN 1
-			WHEN n.conncontactid IS NOT NULL
+			WHEN n.connContactID IS NOT NULL
 				THEN 2
 		END
 	   ,SUBSTRING(ep.FIRST_DBA, 0, 30)
@@ -58,10 +58,11 @@ INSERT INTO [sma_TRN_PoliceReports]
 			ELSE NULL
 		END
 	   ,a.FILENUMBER
-	   ,CASE
-			WHEN [REPORT_REQUESTED] BETWEEN '1/1/1900' AND '12/31/2079'
-				THEN [REPORT_REQUESTED]
-		END
+		--  ,CASE
+		--	WHEN [REPORT_REQUESTED] BETWEEN '1/1/1900' AND '12/31/2079'
+		--		THEN [REPORT_REQUESTED]
+		--END
+	   ,NULL				 -- ds 2024-09-23
 	   ,CASE
 			WHEN [REPORTDATE] IS NULL AND
 				REPORTRECEIVED = 'T'
@@ -88,9 +89,9 @@ INSERT INTO [sma_TRN_PoliceReports]
 		ON ENTITYID = CONTACTID
 	LEFT JOIN [WilliamPagerSaga].[dbo].[ASSIGN] b
 		ON a.ASSIGNID = b.ASSIGNID
-	LEFT JOIN [WilliamPagerSaga].dbo.matter m
-		ON b.matterid = m.matterid
-	LEFT JOIN sma_trn_cases
+	LEFT JOIN [WilliamPagerSaga].dbo.MATTER m
+		ON b.MATTERID = m.MATTERID
+	LEFT JOIN sma_TRN_Cases
 		ON cassCaseNumber = m.MATTERNUMBER
 	LEFT JOIN sma_MST_IndvContacts l
 		ON l.cinsGrade = e.ENTITYID
@@ -104,17 +105,17 @@ INSERT INTO [sma_TRN_PoliceReports]
 		ON n.connLevelNo = ep.ENTITYID
 	OUTER APPLY (
 		SELECT TOP 1
-			addnaddressid AS IndvAddressID
+			addnAddressID AS IndvAddressID
 		FROM sma_MST_Address
-		WHERE addnContactID = o.cinncontactid
+		WHERE addnContactID = o.cinnContactID
 			AND addnContactCtgID = 1
 		ORDER BY ISNULL(addbPrimary, 0) DESC
 	) z
 	OUTER APPLY (
 		SELECT TOP 1
-			addnaddressid AS orgAddressID
+			addnAddressID AS orgAddressID
 		FROM sma_MST_Address
-		WHERE addnContactID = n.conncontactid
+		WHERE addnContactID = n.connContactID
 			AND addnContactCtgID = 2
 		ORDER BY ISNULL(addbPrimary, 0) DESC
 	) z1

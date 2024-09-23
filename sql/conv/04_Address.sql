@@ -458,25 +458,50 @@ INSERT INTO [sma_MST_Address]
 
 UPDATE sma_MST_Address
 SET addbPrimary = 0
-   ,addbIsMailing = 0
+   ,addbIsMailing = 0;
 
-UPDATE sma_MST_Address
-SET addbPrimary = 1
-   ,addbIsMailing = 1
-WHERE addnAddressID IN (
-	SELECT
-		MIN(addnaddressid)
-	FROM sma_MST_Address
-	WHERE CAST(addnContactID AS VARCHAR) + CAST(addnContactCtgID AS VARCHAR) IN (
-			SELECT DISTINCT
-				CAST(addnContactID AS VARCHAR) + CAST(addnContactCtgID AS VARCHAR)
-			FROM sma_MST_Address
-			WHERE addbPrimary = 0
-			GROUP BY addnContactID
-					,addnContactCtgID
-			HAVING COUNT(addnContactID) > 1
-		)
-	GROUP BY addnContactID
-			,addnContactCtgID
+
+--UPDATE sma_MST_Address
+--SET addbPrimary = 1
+--   ,addbIsMailing = 1
+--WHERE addnAddressID IN (
+--	SELECT
+--		MIN(addnaddressid)
+--	FROM sma_MST_Address
+--	WHERE CAST(addnContactID AS VARCHAR) + CAST(addnContactCtgID AS VARCHAR) IN (
+--			SELECT DISTINCT
+--				CAST(addnContactID AS VARCHAR) + CAST(addnContactCtgID AS VARCHAR)
+--			FROM sma_MST_Address
+--			WHERE addbPrimary = 0
+--			GROUP BY addnContactID
+--					,addnContactCtgID
+--			HAVING COUNT(addnContactID) > 1
+--		)
+--	GROUP BY addnContactID
+--			,addnContactCtgID
+--)
+
+-- ds 2024-09-23 optimize query for speed
+WITH AddressRanked AS (
+    SELECT
+        addnAddressID,
+        addnContactID,
+        addnContactCtgID,
+        ROW_NUMBER() OVER (PARTITION BY addnContactID, addnContactCtgID ORDER BY addnAddressID ASC) AS RowNum
+    FROM sma_MST_Address
+    WHERE addbPrimary = 0
 )
+UPDATE sma_MST_Address
+SET addbPrimary = 1,
+    addbIsMailing = 1
+WHERE addnAddressID IN (
+    SELECT addnAddressID
+    FROM AddressRanked
+    WHERE RowNum = 1
+    AND (SELECT COUNT(*) 
+         FROM sma_MST_Address AS addr2 
+         WHERE addr2.addnContactID = AddressRanked.addnContactID 
+           AND addr2.addnContactCtgID = AddressRanked.addnContactCtgID) > 1
+);
+
 ALTER TABLE [sma_MST_Address] ENABLE TRIGGER ALL

@@ -1,6 +1,6 @@
 USE WilliamPagerSA
 
-ALTER TABLE sma_mst_indvcontacts DISABLE TRIGGER ALL
+ALTER TABLE sma_MST_IndvContacts DISABLE TRIGGER ALL
 GO
 
 
@@ -330,7 +330,7 @@ GO
 
 ALTER TABLE [dbo].[sma_trn_ChangeStaffByStatus] CHECK CONSTRAINT [FK_sma_trn_ChangeStaffByStatus_sma_MST_IndvContacts]
 GO
-ALTER TABLE [dbo].[sma_TRN_MySmartAdvocateLayout] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_MySmartAdvocateLayout_sma_MST_Users] FOREIGN KEY ([UserID])
+ALTER TABLE [dbo].[sma_TRN_MySmartAdvocateLayout] WITH CHECK ADD CONSTRAINT [FK_sma_TRN_MySmartAdvocateLayout_sma_MST_Users] FOREIGN KEY ([USERID])
 REFERENCES [dbo].[sma_MST_Users] ([usrnUserID])
 ON UPDATE CASCADE
 ON DELETE CASCADE
@@ -349,7 +349,7 @@ DECLARE indvCaseID_Cursor CURSOR FAST_FORWARD FOR SELECT DISTINCT
 	CASE
 		WHEN (LoginName) IS NOT NULL
 			THEN (LoginName)
-		WHEN (code) IS NULL
+		WHEN (CODE) IS NULL
 			THEN SUBSTRING(ISNULL((FIRST_DBA), ''), 0, 1) + (SUBSTRING(LAST_COMPANY, 0, 19))
 		ELSE (CODE)
 	END AS LoginName
@@ -358,7 +358,7 @@ FROM WilliamPagerSaga.dbo.ENTITIES e
 WHERE CASE
 		WHEN (LoginName) IS NOT NULL
 			THEN (LoginName)
-		WHEN (code) IS NULL
+		WHEN (CODE) IS NULL
 			THEN SUBSTRING(ISNULL((FIRST_DBA), ''), 0, 1) + (SUBSTRING(LAST_COMPANY, 0, 19))
 		ELSE (CODE)
 	END IN (
@@ -369,13 +369,13 @@ WHERE CASE
 				CASE
 					WHEN (LOGINNAME) IS NOT NULL
 						THEN (LOGINNAME)
-					WHEN (code) IS NULL
+					WHEN (CODE) IS NULL
 						THEN SUBSTRING(ISNULL((FIRST_DBA), ''), 0, 1) + (SUBSTRING(LAST_COMPANY, 0, 19))
 					ELSE (CODE)
 				END AS loginname
 			   ,ENTITYID
 			FROM [WilliamPagerSaga].[dbo].[ENTITIES] e
-			LEFT JOIN [WilliamPagerSaga].[dbo].enttype et
+			LEFT JOIN [WilliamPagerSaga].[dbo].ENTTYPE et
 				ON e.ENTITYTYPEID = et.ENTITYTYPEID
 			WHERE e.ENTITYCATEGORY = 1
 				OR et.DESCRIPTION LIKE '%staff%'
@@ -393,13 +393,13 @@ WHERE CASE
 				CASE
 					WHEN (LOGINNAME) IS NOT NULL
 						THEN (LOGINNAME)
-					WHEN (code) IS NULL
+					WHEN (CODE) IS NULL
 						THEN SUBSTRING(ISNULL((FIRST_DBA), ''), 0, 1) + (SUBSTRING(LAST_COMPANY, 0, 19))
 					ELSE (CODE)
 				END AS loginname
 			   ,ENTITYID
 			FROM [WilliamPagerSaga].[dbo].[ENTITIES] e
-			LEFT JOIN [WilliamPagerSaga].[dbo].enttype et
+			LEFT JOIN [WilliamPagerSaga].[dbo].ENTTYPE et
 				ON e.ENTITYTYPEID = et.ENTITYTYPEID
 			WHERE e.ENTITYCATEGORY = 1
 				OR et.DESCRIPTION LIKE '%staff%'
@@ -541,7 +541,7 @@ INSERT INTO [sma_MST_IndvContacts]
 		--	ELSE 0
 		--END
 	   ,1				-- ds 2024-09-20
-	   ,ssn
+	   ,SSN
 	   ,DATEOFB
 	   ,ENTITYNAME
 	   ,1
@@ -550,7 +550,7 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,DOD
 	   ,''
 	   ,''
-	   ,CASE gender
+	   ,CASE GENDER
 			WHEN 'M'
 				THEN 1
 			WHEN 'F'
@@ -560,7 +560,7 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,1
 	   ,1
 	   ,NULL
-	   ,left(phone,20)
+	   ,LEFT(PHONE, 20)
 	   ,''
 	   ,''
 	   ,MOBILEPHONE
@@ -588,7 +588,7 @@ INSERT INTO [sma_MST_IndvContacts]
 	   ,''
 	   ,ENTITYID
 	FROM [WilliamPagerSaga].[dbo].[ENTITIES] e
-	LEFT JOIN [WilliamPagerSaga].[dbo].enttype et
+	LEFT JOIN [WilliamPagerSaga].[dbo].ENTTYPE et
 		ON e.ENTITYTYPEID = et.ENTITYTYPEID
 	WHERE e.ENTITYCATEGORY = 1
 		OR et.DESCRIPTION LIKE '%staff%'
@@ -630,11 +630,11 @@ INSERT INTO [sma_MST_Users]
    ,usrbActiveState
 	)
 	SELECT DISTINCT
-		(cinncontactid)
+		(cinnContactID)
 	   ,CASE
 			WHEN MIN(LOGINNAME) IS NOT NULL
 				THEN MIN(LOGINNAME)
-			WHEN MIN(code) IS NULL
+			WHEN MIN(CODE) IS NULL
 				THEN SUBSTRING(ISNULL(MIN(cinsFirstName), ''), 0, 1) + MIN(SUBSTRING(cinsLastName, 0, 19))
 			ELSE MIN(CODE)
 		END
@@ -662,12 +662,12 @@ INSERT INTO [sma_MST_Users]
 	   ,NULL
 	   ,1
 	   ,NULL
-	 --  ,CASE
+		--  ,CASE
 		--	WHEN MIN(USERTYPE) = 1
 		--		THEN 1
 		--	ELSE 0
 		--END
-		,0			AS usrbActiveState			-- ds 2024-09-20
+	   ,0 AS usrbActiveState			-- ds 2024-09-20
 	FROM sma_MST_IndvContacts
 	LEFT JOIN [WilliamPagerSaga].[dbo].[ENTITIES]
 		ON cinsGrade = ENTITYID
@@ -677,17 +677,88 @@ INSERT INTO [sma_MST_Users]
 		'DJO',
 		'NAM'
 		)
-	GROUP BY cinncontactid
+	GROUP BY cinnContactID
 
---SET IDENTITY_INSERT sma_mst_users ON -->Chinmong
+-- ds 2024-09-23 update aadmin snippet
+IF (
+	select count(*)
+	from sma_mst_users
+	where usrsloginid = 'aadmin'
+	) = 0
+BEGIN
+	SET IDENTITY_INSERT sma_mst_users ON
 
-
---INSERT INTO [sma_MST_Users]
---(usrnuserid,[usrnContactID],[usrsLoginID],[usrsPassword],[usrsBackColor],[usrsReadBackColor],[usrsEvenBackColor],[usrsOddBackColor],[usrnRoleID],[usrdLoginDate],[usrdLogOffDate],[usrnUserLevel],[usrsWorkstation],[usrnPortno],[usrbLoggedIn],
---[usrbCaseLevelRights],[usrbCaseLevelFilters],[usrnUnsuccesfulLoginCount],[usrnRecUserID],[usrdDtCreated],[usrnModifyUserID],[usrdDtModified],[usrnLevelNo],[usrsCaseCloseColor],[usrnDocAssembly],[usrnAdmin],[usrnIsLocked],usrbactivestate)     
---Select distinct 368,8,'aadmin','2/',null,null,null,null,33,null,null,null,null,null,null,null,null,null,1,GETDATE(),null,null,null,null,null,1,null,1
-
---SET IDENTITY_INSERT sma_mst_users OFF
+	INSERT INTO [sma_MST_Users]
+	(
+		usrnuserid
+		,[usrnContactID]
+		,[usrsLoginID]
+		,[usrsPassword]
+		,[usrsBackColor]
+		,[usrsReadBackColor]
+		,[usrsEvenBackColor]
+		,[usrsOddBackColor]
+		,[usrnRoleID]
+		,[usrdLoginDate]
+		,[usrdLogOffDate]
+		,[usrnUserLevel]
+		,[usrsWorkstation]
+		,[usrnPortno]
+		,[usrbLoggedIn]
+		,[usrbCaseLevelRights]
+		,[usrbCaseLevelFilters]
+		,[usrnUnsuccesfulLoginCount]
+		,[usrnRecUserID]
+		,[usrdDtCreated]
+		,[usrnModifyUserID]
+		,[usrdDtModified]
+		,[usrnLevelNo]
+		,[usrsCaseCloseColor]
+		,[usrnDocAssembly]
+		,[usrnAdmin]
+		,[usrnIsLocked]
+		,[usrbActiveState]
+	)
+	SELECT DISTINCT
+		368							as usrnuserid
+		,(
+			SELECT
+				TOP 1
+				cinnContactID
+			FROM
+				dbo.sma_MST_IndvContacts
+			WHERE
+				cinslastname = 'Unassigned'
+				AND cinsfirstname = 'Staff'
+		)							as usrnContactID
+		,'aadmin'					as usrsLoginID
+		,'2/'				 as usrsPassword
+		,null						as [usrsBackColor]
+		,null						as [usrsReadBackColor]
+		,null						as [usrsEvenBackColor]
+		,null						as [usrsOddBackColor]
+		,33							as [usrnRoleID]
+		,null						as [usrdLoginDate]
+		,null						as [usrdLogOffDate]
+		,null						as [usrnUserLevel]
+		,null						as [usrsWorkstation]
+		,null						as [usrnPortno]
+		,null						as [usrbLoggedIn]
+		,null						as [usrbCaseLevelRights]
+		,null						as [usrbCaseLevelFilters]
+		,null						as [usrnUnsuccesfulLoginCount]
+		,1							as [usrnRecUserID]
+		,GETDATE()					as [usrdDtCreated]
+		,null						as [usrnModifyUserID]
+		,null						as [usrdDtModified]
+		,null						as [usrnLevelNo]
+		,null						as [usrsCaseCloseColor]
+		,null						as [usrnDocAssembly]
+		,null						as [usrnAdmin]
+		,null						as [usrnIsLocked]
+		,1							as [usrbActiveState]
+	SET IDENTITY_INSERT sma_mst_users OFF
+END
 
 
 DECLARE @UserID INT
@@ -698,8 +769,8 @@ DECLARE @UserID INT
 -- Insert statements for procedure here
 
 DECLARE staff_cursor CURSOR FAST_FORWARD FOR SELECT
-	usrnuserid
-FROM sma_mst_users
+	usrnUserID
+FROM sma_MST_Users
 
 OPEN staff_cursor
 
@@ -746,4 +817,4 @@ DEALLOCATE staff_cursor
 
 
 
-ALTER TABLE sma_mst_indvcontacts ENABLE TRIGGER ALL
+ALTER TABLE sma_MST_IndvContacts ENABLE TRIGGER ALL

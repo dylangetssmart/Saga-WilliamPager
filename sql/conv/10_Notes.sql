@@ -1,5 +1,8 @@
 USE WilliamPagerSA
 
+SET STATISTICS TIME ON;
+SET STATISTICS IO ON;
+
 ALTER TABLE [sma_MST_NoteTypes]
 ALTER COLUMN [nttsDscrptn] VARCHAR(200)
 INSERT INTO [sma_MST_NoteTypes]
@@ -26,6 +29,115 @@ INSERT INTO [sma_MST_NoteTypes]
 
 ALTER TABLE [sma_TRN_Notes] DISABLE TRIGGER ALL
 --Truncate table sma_trn_notes
+
+-- ds 2024-09-23 create indexes to speed up query
+--CREATE INDEX idx_noteid ON [WilliamPagerSaga].[dbo].[NOTE] (NOTEID);
+--CREATE INDEX idx_matterid ON [WilliamPagerSaga].[dbo].[MATTER] (MATTERID);
+--CREATE INDEX idx_matternumber ON sma_TRN_Cases (cassCaseNumber);
+
+--INSERT INTO [sma_TRN_Notes]
+--	(
+--	[notnCaseID]
+--   ,[notnNoteTypeID]
+--   ,[notmDescription]
+--   ,[notmPlainText]
+--   ,[notnContactCtgID]
+--   ,[notnContactId]
+--   ,[notsPriority]
+--   ,[notnFormID]
+--   ,[notnRecUserID]
+--   ,[notdDtCreated]
+--   ,[notnModifyUserID]
+--   ,[notdDtModified]
+--   ,[notnLevelNo]
+--   ,[notdDtInserted]
+--   ,notnSubject
+--	)
+--	SELECT
+--		casnCaseID
+--	   ,nttnNoteTypeID
+--	   ,DESCRIPTION
+--	   ,ISNULL(NOTE, '')
+--	   ,[1]
+--	   ,[2]
+--	   ,[3]
+--	   ,[4]
+--	   ,[9]
+--	   ,[5]
+--	   ,usrnUserID
+--	   ,DATEREVISED
+--	   ,[6]
+--	   ,[7]
+--	   ,SUBSTRING(DESCRIPTION, 0, 200)
+--	FROM (
+--		SELECT
+--			casnCaseID
+--		   ,nttnNoteTypeID
+--		   ,a.DESCRIPTION
+--		   ,CONVERT(VARCHAR(MAX), a.NOTES) AS Note
+--		   ,CASE
+--				WHEN e.cinnContactID IS NOT NULL
+--					THEN 1
+--				WHEN f.connContactID IS NOT NULL
+--					THEN 2
+--			END AS [1]
+--		   ,CASE
+--				WHEN e.cinnContactID IS NOT NULL
+--					THEN e.cinnContactID
+--				WHEN f.connContactID IS NOT NULL
+--					THEN f.connContactID
+--			END AS [2]
+--		   ,'Normal' AS [3]
+--		   ,a.NOTEID AS [4]
+--		   ,CASE ISNULL((u1.usrnUserID), '')
+--				WHEN ''
+--					THEN 368
+--				ELSE (u1.usrnUserID)
+--			END AS [9]
+--		   ,CASE
+--				WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+--					THEN GETDATE()
+--				ELSE (a.DATECREATED)
+--			END AS [5]
+--		   ,(u2.usrnUserID)
+--		   ,CASE
+--				WHEN (a.DATEREVISED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+--					THEN GETDATE()
+--				ELSE (a.DATEREVISED)
+--			END AS DATEREVISED
+--		   ,'' AS [6]
+--		   ,CASE
+--				WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+--					THEN GETDATE()
+--				ELSE (a.DATECREATED)
+--			END AS [7]
+--		FROM [WilliamPagerSaga].[dbo].[Note] a
+--		LEFT JOIN [WilliamPagerSaga].[dbo].NTMATAS b
+--			ON a.NOTEID = b.NOTEID
+--		LEFT JOIN [WilliamPagerSaga].[dbo].[MATTER] c
+--			ON c.MATTERID = b.MATTERID
+--		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTETYPE] d
+--			ON d.NOTETYPEID = a.NOTETYPEID
+--		LEFT JOIN sma_TRN_Cases
+--			ON c.MATTERNUMBER = cassCaseNumber
+--		LEFT JOIN sma_MST_NoteTypes
+--			ON nttsDscrptn = d.DESCRIPTION
+--		LEFT JOIN sma_MST_IndvContacts e
+--			ON e.cinsGrade = a.OTHERPARTYID
+--		LEFT JOIN sma_MST_OrgContacts f
+--			ON f.connLevelNo = a.OTHERPARTYID
+--		LEFT JOIN sma_MST_IndvContacts l
+--			ON l.cinsGrade = a.CREATORID
+--		LEFT JOIN sma_MST_Users u1
+--			ON u1.usrnContactID = l.cinnContactID
+--		LEFT JOIN sma_MST_IndvContacts m
+--			ON m.cinsGrade = a.REVISORID
+--		LEFT JOIN sma_MST_Users u2
+--			ON u2.usrnContactID = m.cinnContactID
+--		WHERE casnCaseID IS NOT NULL
+--	) a
+
+-- ds 2024-09-23 - Handle out-of-range datetime values
 INSERT INTO [sma_TRN_Notes]
 	(
 	[notnCaseID]
@@ -47,82 +159,64 @@ INSERT INTO [sma_TRN_Notes]
 	SELECT
 		casnCaseID
 	   ,nttnNoteTypeID
-	   ,DESCRIPTION
-	   ,ISNULL(note, '')
-	   ,[1]
-	   ,[2]
-	   ,[3]
-	   ,[4]
-	   ,[9]
-	   ,[5]
-	   ,usrnUserID
-	   ,DATEREVISED
-	   ,[6]
-	   ,[7]
-	   ,SUBSTRING(DESCRIPTION, 0, 200)
-	FROM (
-		SELECT
-			casnCaseID
-		   ,nttnNoteTypeID
-		   ,a.DESCRIPTION
-		   ,CONVERT(VARCHAR(MAX), a.notes) AS Note
-		   ,CASE
-				WHEN e.cinnContactID IS NOT NULL
-					THEN 1
-				WHEN f.connContactid IS NOT NULL
-					THEN 2
-			END AS [1]
-		   ,CASE
-				WHEN e.cinnContactID IS NOT NULL
-					THEN e.cinnContactID
-				WHEN f.connContactid IS NOT NULL
-					THEN f.connContactID
-			END AS [2]
-		   ,'Normal' AS [3]
-		   ,a.noteid AS [4]
-		   ,CASE ISNULL((u1.usrnuserid), '')
-				WHEN ''
-					THEN 368
-				ELSE (u1.usrnuserid)
-			END AS [9]
-		   ,CASE (a.datecreated)
-				WHEN NULL
-					THEN GETDATE()
-				ELSE (a.datecreated)
-			END AS [5]
-		   ,(u2.usrnuserid)
-		   ,(a.daterevised)
-		   ,'' AS [6]
-		   ,CASE (a.datecreated)
-				WHEN NULL
-					THEN GETDATE()
-				ELSE (a.datecreated)
-			END AS [7]
-		FROM [WilliamPagerSaga].[dbo].[Note] a
-		LEFT JOIN [WilliamPagerSaga].[dbo].NTMATAS b
-			ON a.NOTEID = b.NOTEID
-		LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] c
-			ON c.MATTERID = b.MATTERID
-		LEFT JOIN [WilliamPagerSaga].[dbo].[NOTETYPE] d
-			ON d.NOTETYPEID = a.NOTETYPEID
-		LEFT JOIN sma_trn_cases
-			ON c.MATTERNUMBER = cassCaseNumber
-		LEFT JOIN sma_MST_NoteTypes
-			ON nttsDscrptn = d.DESCRIPTION
-		LEFT JOIN sma_MST_IndvContacts e
-			ON e.cinsGrade = a.OTHERPARTYID
-		LEFT JOIN sma_MST_OrgContacts f
-			ON f.connLevelNo = a.OTHERPARTYID
-		LEFT JOIN sma_MST_IndvContacts l
-			ON l.cinsGrade = a.CREATORID
-		LEFT JOIN sma_mst_users u1
-			ON u1.usrnContactID = l.cinnContactID
-		LEFT JOIN sma_MST_IndvContacts m
-			ON m.cinsGrade = a.REVISORID
-		LEFT JOIN sma_mst_users u2
-			ON u2.usrnContactID = m.cinnContactID
-		WHERE casnCaseID IS NOT NULL
-	) a
+	   ,a.DESCRIPTION
+	   ,ISNULL(a.NOTES, '')
+	   ,CASE
+			WHEN e.cinnContactID IS NOT NULL
+				THEN 1
+			ELSE 2
+		END
+	   ,CASE
+			WHEN e.cinnContactID IS NOT NULL
+				THEN e.cinnContactID
+			ELSE f.connContactID
+		END
+	   ,'Normal'
+	   ,a.NOTEID
+	   ,COALESCE(u1.usrnUserID, 368)
+	   ,CASE
+			WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATECREATED)
+		END
+	   ,u2.usrnUserID
+	   ,CASE
+			WHEN (a.DATEREVISED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATEREVISED)
+		END
+	   ,''
+	   ,CASE
+			WHEN (a.DATECREATED NOT BETWEEN '1900-01-01' AND '2079-12-31')
+				THEN GETDATE()
+			ELSE (a.DATECREATED)
+		END
+	   ,SUBSTRING(a.DESCRIPTION, 0, 200)
+	FROM [WilliamPagerSaga].[dbo].[NOTE] a
+	LEFT JOIN [WilliamPagerSaga].[dbo].NTMATAS b
+		ON a.NOTEID = b.NOTEID
+	LEFT JOIN [WilliamPagerSaga].[dbo].[MATTER] c
+		ON c.MATTERID = b.MATTERID
+	LEFT JOIN [WilliamPagerSaga].[dbo].[NOTETYPE] d
+		ON d.NOTETYPEID = a.NOTETYPEID
+	LEFT JOIN sma_TRN_Cases
+		ON c.MATTERNUMBER = cassCaseNumber
+	LEFT JOIN sma_MST_NoteTypes
+		ON nttsDscrptn = d.DESCRIPTION
+	LEFT JOIN sma_MST_IndvContacts e
+		ON e.cinsGrade = a.OTHERPARTYID
+	LEFT JOIN sma_MST_OrgContacts f
+		ON f.connLevelNo = a.OTHERPARTYID
+	LEFT JOIN sma_MST_IndvContacts l
+		ON l.cinsGrade = a.CREATORID
+	LEFT JOIN sma_MST_Users u1
+		ON u1.usrnContactID = l.cinnContactID
+	LEFT JOIN sma_MST_IndvContacts m
+		ON m.cinsGrade = a.REVISORID
+	LEFT JOIN sma_MST_Users u2
+		ON u2.usrnContactID = m.cinnContactID
+	WHERE casnCaseID IS NOT NULL;
+
 
 --Update sma_TRN_Notes 
 --set notmPlainText =convert(varchar(max),ltrim(replace(
@@ -169,7 +263,7 @@ INSERT INTO [sma_TRN_Notes]
 		casnCaseID
 	   ,nttnNoteTypeID
 	   ,DESCRIPTION
-	   ,ISNULL(note, '')
+	   ,ISNULL(NOTE, '')
 	   ,[1]
 	   ,[2]
 	   ,[3]
@@ -194,39 +288,39 @@ INSERT INTO [sma_TRN_Notes]
 		   ,CASE
 				WHEN e.cinnContactID IS NOT NULL
 					THEN 1
-				WHEN f.connContactid IS NOT NULL
+				WHEN f.connContactID IS NOT NULL
 					THEN 2
 			END AS [1]
 		   ,CASE
 				WHEN e.cinnContactID IS NOT NULL
 					THEN e.cinnContactID
-				WHEN f.connContactid IS NOT NULL
+				WHEN f.connContactID IS NOT NULL
 					THEN f.connContactID
 			END AS [2]
 		   ,'Normal' AS [3]
-		   ,a.noteid AS [4]
-		   ,CASE ISNULL((u1.usrnuserid), '')
+		   ,a.NOTEID AS [4]
+		   ,CASE ISNULL((u1.usrnUserID), '')
 				WHEN ''
 					THEN 368
-				ELSE (u1.usrnuserid)
+				ELSE (u1.usrnUserID)
 			END AS [9]
-		   ,CASE (a.datecreated)
+		   ,CASE (a.DATECREATED)
 				WHEN NULL
 					THEN GETDATE()
-				ELSE (a.datecreated)
+				ELSE (a.DATECREATED)
 			END AS [5]
-		   ,(u2.usrnuserid)
-		   ,(a.daterevised)
+		   ,(u2.usrnUserID)
+		   ,(a.DATEREVISED)
 		   ,'' AS [6]
-		   ,CASE (a.datecreated)
+		   ,CASE (a.DATECREATED)
 				WHEN NULL
 					THEN GETDATE()
-				ELSE (a.datecreated)
+				ELSE (a.DATECREATED)
 			END AS [7]
 		FROM [WilliamPagerSaga].[dbo].[Note] a
-		LEFT JOIN [WilliamPagerSaga].[dbo].[Matter] c
+		LEFT JOIN [WilliamPagerSaga].[dbo].[MATTER] c
 			ON c.STATUSCOMMENTSID = a.NOTEID
-		LEFT JOIN sma_trn_cases
+		LEFT JOIN sma_TRN_Cases
 			ON c.MATTERNUMBER = cassCaseNumber
 		LEFT JOIN sma_MST_NoteTypes
 			ON nttsDscrptn = 'No fault Exam Results'
@@ -236,11 +330,11 @@ INSERT INTO [sma_TRN_Notes]
 			ON f.connLevelNo = a.OTHERPARTYID
 		LEFT JOIN sma_MST_IndvContacts l
 			ON l.cinsGrade = a.CREATORID
-		LEFT JOIN sma_mst_users u1
+		LEFT JOIN sma_MST_Users u1
 			ON u1.usrnContactID = l.cinnContactID
 		LEFT JOIN sma_MST_IndvContacts m
 			ON m.cinsGrade = a.REVISORID
-		LEFT JOIN sma_mst_users u2
+		LEFT JOIN sma_MST_Users u2
 			ON u2.usrnContactID = m.cinnContactID
 		WHERE a.NOTEID IS NOT NULL
 			AND casnCaseID IS NOT NULL
@@ -295,7 +389,7 @@ INSERT INTO [sma_TRN_Notes]
 	)
 
 	SELECT DISTINCT
-		casncaseid
+		casnCaseID
 	   ,@NoteTypeID
 	   ,DESCRIPTION
 	   ,CONVERT(VARCHAR(MAX), LTRIM(REPLACE(
@@ -305,7 +399,7 @@ INSERT INTO [sma_TRN_Notes]
 	   ,NULL
 	   ,NULL
 	   ,'Normal'
-	   ,n.noteid
+	   ,n.NOTEID
 	   ,usrnUserID
 	   ,n.DATECREATED
 	   ,NULL
@@ -313,7 +407,7 @@ INSERT INTO [sma_TRN_Notes]
 	   ,''
 	   ,n.DATECREATED
 	   ,DESCRIPTION
-	FROM sma_trn_cases
+	FROM sma_TRN_Cases
 	LEFT JOIN WilliamPagerSaga.dbo.MATTER m
 		ON MATTERNUMBER = cassCaseNumber
 	LEFT JOIN [WilliamPagerSaga].[dbo].[LW_MATTER] a
@@ -322,19 +416,19 @@ INSERT INTO [sma_TRN_Notes]
 		ON n.NOTEID = a.ALERTNOTEID
 	LEFT JOIN sma_MST_IndvContacts l
 		ON l.cinsGrade = n.CREATORID
-	LEFT JOIN sma_mst_users u1
+	LEFT JOIN sma_MST_Users u1
 		ON u1.usrnContactID = l.cinnContactID
 	WHERE n.NOTEID IS NOT NULL
 
 
-DELETE FROM sma_trn_notes
+DELETE FROM sma_TRN_Notes
 WHERE notnFormID IN (
 		SELECT
-			noteid
-		FROM [WilliamPagerSaga].dbo.LW_log l
+			NOTEID
+		FROM [WilliamPagerSaga].dbo.LW_LOG l
 	)
 
-UPDATE sma_trn_notes
+UPDATE sma_TRN_Notes
 SET notnFormID = NULL
 ALTER TABLE [sma_TRN_Notes] ENABLE TRIGGER ALL
 GO
