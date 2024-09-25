@@ -1,5 +1,16 @@
 USE WilliamPagerSA
 
+/*
+[sma_MST_TaskTemplateGroup]
+[sma_mst_Task_Template]
+sma_mst_TaskCaseStatus
+#tmpTask
+[sma_TRN_TaskNew]
+
+
+
+*/
+
 INSERT INTO [sma_MST_TaskTemplateGroup]
 	(
 	[tskgrpName]
@@ -15,6 +26,8 @@ INSERT INTO [sma_MST_TaskTemplateGroup]
 	   ,NULL
 	   ,NULL
 GO
+
+
 INSERT INTO [sma_mst_Task_Template]
 	(
 	[tskMasterDetails]
@@ -65,6 +78,8 @@ INSERT INTO [sma_mst_Task_Template]
 			FROM [sma_mst_Task_Template]
 		)
 GO
+
+
 ALTER TABLE sma_mst_TaskCaseStatus NOCHECK CONSTRAINT ALL
 INSERT INTO sma_mst_taskcasestatus
 	SELECT
@@ -82,11 +97,14 @@ INSERT INTO sma_mst_taskcasestatus
 			WHERE [tskCreatedDt] > GETDATE() - 1
 		)
 GO
+
+
 DECLARE @TemplateGroupID INT
 SELECT
 	@TemplateGroupID = MAX(tskgrpid)
 FROM [sma_MST_TaskTemplateGroup]
 WHERE tskgrpName = 'SAGA'
+
 
 INSERT INTO [sma_TRN_TaskTemplateGroup]
 	SELECT
@@ -104,6 +122,8 @@ INSERT INTO [sma_TRN_TaskTemplateGroup]
 			WHERE [tskCreatedDt] > GETDATE() - 1
 		)
 GO
+
+
 SELECT DISTINCT
 	MATTERID
    ,t.Data
@@ -113,8 +133,10 @@ CROSS APPLY dbo.Split(RESPONSIBLELIST, ',') AS t
 WHERE t.Data IS NOT NULL
 	AND MATTERID IS NOT NULL
 	AND RESPONSIBLELIST LIKE '%,%'
-ORDER BY MATTERID
+--ORDER BY MATTERID
 GO
+
+
 INSERT INTO #tmpTask
 	SELECT DISTINCT
 		MATTERID
@@ -124,8 +146,10 @@ INSERT INTO #tmpTask
 	WHERE RESPONSIBLELIST IS NOT NULL
 		AND MATTERID IS NOT NULL
 		AND RESPONSIBLELIST NOT LIKE '%,%'
-	ORDER BY MATTERID
+	--ORDER BY MATTERID
 GO
+
+
 INSERT INTO [dbo].[sma_TRN_TaskNew]
 	(
 	[tskCaseID]
@@ -238,10 +262,11 @@ INSERT INTO [dbo].[sma_TRN_TaskNew]
 		ON AType.DESCRIPTION = tskMasterDetails
 	WHERE casncaseid IS NOT NULL
 		AND mr.type IN (0, 3)
-
 GO
+
 DROP TABLE #tmpTask
 GO
+
 DELETE FROM sma_TRN_TaskNew
 WHERE NOT EXISTS (
 		SELECT
@@ -262,6 +287,7 @@ WHERE NOT EXISTS (
 				,tskSummary
 	)
 GO
+
 UPDATE a
 SET a.tskCompleted = 2
    ,a.tskModifiedDt = GETDATE()

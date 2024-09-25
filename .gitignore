@@ -39,3 +39,5 @@ lib/__pycache__/
 
 # Ignore python virtual environment
 venv/
+
+sql/2024-09-24-UpgradeScripts/*
